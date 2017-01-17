@@ -1,0 +1,27 @@
+{
+    "raw": {
+        "id": "raw",
+        "version": "1.0",
+        "requires": "module.py"
+    },
+    "resample": {
+        "id": "resample",
+        "version": "1.0",
+        "requires": "module.py"
+    },
+    "diarization": {
+        "id": "diarization",
+        "version": "8.4.1",
+        "requires": "LIUM_SpkDiarization-8.4.1.jar"
+    },
+    "google": {
+        "id": "google",
+        "version": "1.0",
+        "requires": "module.py"
+    },
+    "lvcsr": {
+        "id": "lvcsr",
+        "version": "1.0",
+        "requires": "run.sh"
+    }
+}
