@@ -1,0 +1,13 @@
+# Python specifics
+.py[cod]
+__pycache__/
+
+# Auth
+auth/
+
+# Data
+data*/
+*.log
+
+# VSCode
+.vscode
