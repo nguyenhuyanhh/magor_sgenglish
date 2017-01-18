@@ -1,13 +1,14 @@
 """
 Module: diarize
 Version: 8.4.1
+Requires: LIUM_SpkDiarization-8.4.1.jar
 
 Python wrapper for speaker diarization using LIUM
 """
 
 import os
-import sys
 import subprocess
+import sys
 
 CUR_DIR = os.path.dirname(os.path.realpath(__file__))
 ROOT_DIR = os.path.dirname(os.path.dirname(CUR_DIR))

@@ -1,6 +1,7 @@
 """
 Module: google
 Version: 1beta1
+Requires: key.json
 
 Transcribe a file_id into /transcript/google
 """
@@ -10,13 +11,13 @@ import os
 import sys
 import wave
 from base64 import b64encode
-from time import sleep
 from decimal import Decimal
 from random import randint
+from time import sleep
 
-from sox import Transformer
 from googleapiclient.discovery import build
 from oauth2client.service_account import ServiceAccountCredentials
+from sox import Transformer
 
 CUR_DIR = os.path.dirname(os.path.realpath(__file__))
 ROOT_DIR = os.path.dirname(os.path.dirname(CUR_DIR))

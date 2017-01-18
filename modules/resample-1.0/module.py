@@ -1,6 +1,7 @@
 """
 Module: resample
 Version: 1.0
+Requires:
 
 Resample a file_id into /resample
 """
