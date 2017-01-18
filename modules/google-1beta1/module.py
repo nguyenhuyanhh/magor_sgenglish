@@ -1,6 +1,6 @@
 """
 Module: google
-Version: 1.0
+Version: 1beta1
 
 Transcribe a file_id into /transcript/google
 """

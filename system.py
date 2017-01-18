@@ -19,6 +19,12 @@ if not os.path.exists(CRAWL_DIR):
 logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger(__name__)
 
+MANIFEST_FILE = os.path.join(CUR_DIR, 'manifest.json')
+with open(MANIFEST_FILE, 'r') as file_:
+    MANIFEST = json.load(file_)
+PROCEDURES = MANIFEST['procedures']
+MODULES = MANIFEST['modules']
+
 
 class Speech():
     """
@@ -31,28 +37,28 @@ class Speech():
         self.file_id = slugify(os.path.splitext(filename)[0])
         self.procedure_id = procedure_id
 
+        # set later during verify()
+        self.raw_mod = None
+        self.resample_mod = None
+        self.diarize_mod = None
+        self.transcribe_mod = None
+
     def verify(self):
         """Verify the procedure and modules."""
-        manifest_file = os.path.join(CUR_DIR, 'manifest.json')
-        with open(manifest_file, 'r') as file_:
-            manifest = json.load(file_)
-
         # verify procedure
-        procedures = manifest['procedures']
-        if not self.procedure_id in procedures.keys():
+        if not self.procedure_id in PROCEDURES.keys():
             LOG.info('Procedure %s does not exist.', self.procedure_id)
             return False
         else:
             LOG.info('Procedure %s.', self.procedure_id)
 
         # verify modules
-        modules = manifest['modules']
-        procedure = procedures[self.procedure_id]
+        procedure = PROCEDURES[self.procedure_id]
         for type_, mod_ in procedure.items():
-            if mod_ not in modules.keys():
+            if mod_ not in MODULES.keys():
                 LOG.info("Module %s does not exist", mod_)
                 return False
-            module = modules[mod_]
+            module = MODULES[mod_]
             if not module['type'] == type_:
                 LOG.info("Type %s and module %s do not match", type_, mod_)
                 return False
@@ -67,24 +73,46 @@ class Speech():
                     LOG.info('Module %s version %s: %s.',
                              mod_, module['version'], exec_)
 
+        # set modules
+        self.raw_mod = procedure['raw']
+        self.resample_mod = procedure['resample']
+        self.diarize_mod = procedure['diarize']
+        self.transcribe_mod = procedure['transcribe']
+
         return True
 
     def raw(self):
         """Import a raw file."""
-        pass
+        exec_ = os.path.join(MODULES_DIR, self.raw_mod, 'module.py')
+        args = ['python', exec_, self.filename]
+        subprocess.call(args)
 
     def resample(self):
         """Resample a file using module resample."""
-        pass
+        exec_ = os.path.join(MODULES_DIR, self.resample_mod, 'module.py')
+        args = ['python', exec_, self.file_id]
+        subprocess.call(args)
 
     def diarize(self):
         """Diarize a file using module diarize."""
-        pass
+        exec_ = os.path.join(MODULES_DIR, self.diarize_mod, 'module.py')
+        args = ['python', exec_, self.file_id]
+        subprocess.call(args)
 
     def transcribe(self):
         """Transcribe a file using module google or lvcsr."""
-        pass
+        exec_ = os.path.join(MODULES_DIR, self.transcribe_mod, 'module.py')
+        args = ['python', exec_, self.file_id]
+        subprocess.call(args)
+
+    def pipeline(self):
+        """Pipeline for processing."""
+        if self.verify():
+            self.raw()
+            self.resample()
+            self.diarize()
+            self.transcribe()
 
 if __name__ == '__main__':
-    SP = Speech(filename='', procedure_id='googlw')
-    SP.verify()
+    SP = Speech(filename='recording20161027230522.wav', procedure_id='google')
+    SP.pipeline()
