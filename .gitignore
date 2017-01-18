@@ -3,7 +3,7 @@
 __pycache__/
 
 # Auth
-modules/google/key.json
+modules/google*/key.json
 
 # Data
 data*/
