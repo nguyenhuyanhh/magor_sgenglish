@@ -1,0 +1,43 @@
+{
+    "modules": {
+        "raw-1.0": {
+            "type": "raw",
+            "version": "1.0",
+            "requires": []
+        },
+        "resample-1.0": {
+            "type": "resample",
+            "version": "1.0",
+            "requires": []
+        },
+        "diarize-8.4.1": {
+            "type": "diarize",
+            "version": "8.4.1",
+            "requires": [
+                "LIUM_SpkDiarization-8.4.1.jar"
+            ]
+        },
+        "google-1beta1": {
+            "type": "transcribe",
+            "version": "1beta1",
+            "requires": [
+                "key.json"
+            ]
+        },
+        "lvcsr": {
+            "type": "transcribe",
+            "version": "1.0",
+            "requires": [
+                "run.sh"
+            ]
+        }
+    },
+    "procedures": {
+        "google": {
+            "raw": "raw-1.0",
+            "resample": "resample-1.0",
+            "diarize": "diarize-8.4.1",
+            "transcribe": "google-1beta1"
+        }
+    }
+}

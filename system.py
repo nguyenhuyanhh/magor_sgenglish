@@ -3,6 +3,9 @@
 import json
 import logging
 import os
+import subprocess
+
+from slugify import slugify
 
 CUR_DIR = os.path.dirname(os.path.realpath(__file__))
 MODULES_DIR = os.path.join(CUR_DIR, 'modules/')
@@ -17,25 +20,57 @@ logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger(__name__)
 
 
-def verify_modules():
-    """Verify the modules are in place."""
-    manifest_file = os.path.join(CUR_DIR, 'modules.json')
-    with open(manifest_file, 'r') as file_:
-        manifest = json.load(file_)
-    for key, item in manifest.items():
-        executable_file = os.path.join(
-            MODULES_DIR, item['id'], item['requires'])
-        req = "exists" if os.path.exists(executable_file) else "does not exist"
-        LOG.info('Module %s version %s: %s', key, item['version'], req)
-
-
 class Speech():
     """
     Speech processing tasks.
-    Syntax: Speech(file_id)
+    Syntax: Speech(filename, procedure_id)
     """
 
-    def __init__(self, file_id):
+    def __init__(self, filename, procedure_id):
+        self.filename = filename
+        self.file_id = slugify(os.path.splitext(filename)[0])
+        self.procedure_id = procedure_id
+
+    def verify(self):
+        """Verify the procedure and modules."""
+        manifest_file = os.path.join(CUR_DIR, 'manifest.json')
+        with open(manifest_file, 'r') as file_:
+            manifest = json.load(file_)
+
+        # verify procedure
+        procedures = manifest['procedures']
+        if not self.procedure_id in procedures.keys():
+            LOG.info('Procedure %s does not exist.', self.procedure_id)
+            return False
+        else:
+            LOG.info('Procedure %s.', self.procedure_id)
+
+        # verify modules
+        modules = manifest['modules']
+        procedure = procedures[self.procedure_id]
+        for type_, mod_ in procedure.items():
+            if mod_ not in modules.keys():
+                LOG.info("Module %s does not exist", mod_)
+                return False
+            module = modules[mod_]
+            if not module['type'] == type_:
+                LOG.info("Type %s and module %s do not match", type_, mod_)
+                return False
+            execs = module['requires'] + ['module.py']
+            for exec_ in execs:
+                exec_path = os.path.join(MODULES_DIR, mod_, exec_)
+                if not os.path.exists(exec_path):
+                    LOG.info('Module %s version %s: %s does not exist.',
+                             mod_, module['version'], exec_)
+                    return False
+                else:
+                    LOG.info('Module %s version %s: %s.',
+                             mod_, module['version'], exec_)
+
+        return True
+
+    def raw(self):
+        """Import a raw file."""
         pass
 
     def resample(self):
@@ -51,4 +86,5 @@ class Speech():
         pass
 
 if __name__ == '__main__':
-    verify_modules()
+    SP = Speech(filename='', procedure_id='googlw')
+    SP.verify()
