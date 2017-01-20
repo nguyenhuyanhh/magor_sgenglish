@@ -6,6 +6,7 @@ Requires:
 Import raw files into /data
 """
 
+import logging
 import os
 import shutil
 import sys
@@ -17,6 +18,8 @@ ROOT_DIR = os.path.dirname(os.path.dirname(CUR_DIR))
 DATA_DIR = os.path.join(ROOT_DIR, 'data/')
 CRAWL_DIR = os.path.join(ROOT_DIR, 'crawl/')
 AUDIO_EXTS = ['.wav', '.mp3']
+
+logging.getLogger().disabled = True
 
 
 def raw(filename):

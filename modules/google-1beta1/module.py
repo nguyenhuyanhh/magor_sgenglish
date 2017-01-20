@@ -7,6 +7,7 @@ Transcribe a file_id into /transcript/google
 """
 
 import json
+import logging
 import os
 import sys
 import wave
@@ -22,6 +23,10 @@ from sox import Transformer
 CUR_DIR = os.path.dirname(os.path.realpath(__file__))
 ROOT_DIR = os.path.dirname(os.path.dirname(CUR_DIR))
 DATA_DIR = os.path.join(ROOT_DIR, 'data/')
+
+logging.getLogger().disabled = True
+logging.getLogger('oauth2client').setLevel(logging.ERROR)
+logging.getLogger('googleapiclient').setLevel(logging.ERROR)
 
 
 def google(file_id):

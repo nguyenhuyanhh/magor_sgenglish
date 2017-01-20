@@ -6,6 +6,7 @@ Requires:
 Resample a file_id into /resample
 """
 
+import logging
 import os
 import sys
 
@@ -14,6 +15,8 @@ from sox import Transformer
 CUR_DIR = os.path.dirname(os.path.realpath(__file__))
 ROOT_DIR = os.path.dirname(os.path.dirname(CUR_DIR))
 DATA_DIR = os.path.join(ROOT_DIR, 'data/')
+
+logging.getLogger().disabled = True
 
 
 def resample(file_id):

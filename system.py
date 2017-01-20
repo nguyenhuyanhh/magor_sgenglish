@@ -16,7 +16,7 @@ CRAWL_DIR = os.path.join(CUR_DIR, 'crawl/')
 if not os.path.exists(CRAWL_DIR):
     os.makedirs(CRAWL_DIR)
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s : %(message)s')
 LOG = logging.getLogger(__name__)
 
 MANIFEST_FILE = os.path.join(CUR_DIR, 'manifest.json')
@@ -46,7 +46,7 @@ class Speech():
     def verify(self):
         """Verify the procedure and modules."""
         # verify procedure
-        if not self.procedure_id in PROCEDURES.keys():
+        if self.procedure_id not in PROCEDURES.keys():
             LOG.info('Procedure %s does not exist.', self.procedure_id)
             return False
         else:
@@ -83,27 +83,47 @@ class Speech():
 
     def raw(self):
         """Import a raw file."""
-        exec_ = os.path.join(MODULES_DIR, self.raw_mod, 'module.py')
-        args = ['python', exec_, self.filename]
-        subprocess.call(args)
+        try:
+            exec_ = os.path.join(MODULES_DIR, self.raw_mod, 'module.py')
+            args = ['python', exec_, self.filename]
+            subprocess.call(args)
+            LOG.info('Import completed for %s using module %s',
+                     self.filename, self.raw_mod)
+        except:
+            LOG.info('Error occured.')
 
     def resample(self):
         """Resample a file using module resample."""
-        exec_ = os.path.join(MODULES_DIR, self.resample_mod, 'module.py')
-        args = ['python', exec_, self.file_id]
-        subprocess.call(args)
+        try:
+            exec_ = os.path.join(MODULES_DIR, self.resample_mod, 'module.py')
+            args = ['python', exec_, self.file_id]
+            subprocess.call(args)
+            LOG.info('Resampling completed for %s using module %s',
+                     self.file_id, self.resample_mod)
+        except:
+            LOG.info('Error occured.')
 
     def diarize(self):
         """Diarize a file using module diarize."""
-        exec_ = os.path.join(MODULES_DIR, self.diarize_mod, 'module.py')
-        args = ['python', exec_, self.file_id]
-        subprocess.call(args)
+        try:
+            exec_ = os.path.join(MODULES_DIR, self.diarize_mod, 'module.py')
+            args = ['python', exec_, self.file_id]
+            subprocess.call(args)
+            LOG.info('Diarization completed for %s using module %s',
+                     self.file_id, self.diarize_mod)
+        except:
+            LOG.info('Error occured.')
 
     def transcribe(self):
         """Transcribe a file using module google or lvcsr."""
-        exec_ = os.path.join(MODULES_DIR, self.transcribe_mod, 'module.py')
-        args = ['python', exec_, self.file_id]
-        subprocess.call(args)
+        try:
+            exec_ = os.path.join(MODULES_DIR, self.transcribe_mod, 'module.py')
+            args = ['python', exec_, self.file_id]
+            subprocess.call(args)
+            LOG.info('Transcription completed for %s using module %s',
+                     self.file_id, self.transcribe_mod)
+        except:
+            LOG.info('Error occured.')
 
     def pipeline(self):
         """Pipeline for processing."""
