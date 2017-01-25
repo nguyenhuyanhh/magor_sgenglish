@@ -30,7 +30,7 @@ def diarize(file_id):
     diarize_file = os.path.join(diarize_dir, '{}.seg'.format(file_id))
     fnull = open(os.devnull, 'w')
     args = ['java', '-Xmx2048m', '-jar', lium_path, '--fInputMask=' +
-            resample_file, '--sOutputMask=' + diarize_file, file_id]
+            resample_file, '--sOutputMask=' + diarize_file, '--doCEClustering', file_id]
     subprocess.call(args, stdout=fnull, stderr=subprocess.STDOUT)
 
 if __name__ == '__main__':
