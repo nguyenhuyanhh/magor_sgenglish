@@ -29,9 +29,9 @@ data/                   # folder for main data
         ...
     ...
 modules/                # folder for modules
-    raw*/               
-    resample*/          
-    diarize*/           
+    raw*/
+    resample*/
+    diarize*/
     google*/
         key.json        # Google Service Account JSON key (not included in repository)
     lvcsr*/
@@ -48,16 +48,16 @@ An example would be the included `manifest.json`.
 ```json
 {
     "modules":{
-        "module-id-1":{         // module id: must be a folder name under modules/
-            "type":"",          // type: must be one of "raw", "resample", "diarize", "transcribe"
-            "version":"",       // version: must be str
-            "requires":[]       // requires: must be a list of str, required files/ folders under modules/module-id
+        "module-id-1":{
+            "type":"",
+            "version":"",
+            "requires":[]
         },
         "module-id-2":{}
     },
     "procedures":{
         "procedure-id-1":{
-            "raw":"",           // raw, resample, diarize, transcribe: must be a valid module-id
+            "raw":"",
             "resample":"",
             "diarize":"",
             "transcribe":""
@@ -66,5 +66,19 @@ An example would be the included `manifest.json`.
     }
 }
 ```
+
+Field types and value constraints:
+
+| Field | Type | Constraint
+| --- | --- | --- 
+| `module-id` | `str` | Must be the name of a subfolder under `/modules`
+| -- `type` | `str` | Must be one of "raw", "resample", "diarize", "transcribe"
+| -- `version` | `str` |
+| -- `requires` | `list(str)` | Module dependencies (required paths under `modules/module-id`)
+| `procedure-id` | `str` | 
+| -- `raw` | `str` | Must be a `module-id`
+| -- `resample` | `str` | Must be a `module-id`
+| -- `diarize` | `str` | Must be a `module-id`
+| -- `transcribe` | `str` | Must be a `module-id`
 
 The specific instance of the class `Speech()` in `speech.py` would load the manifest and check whether the procedure is valid and all its modules and their dependencies (`requires`) are met before invoking the processing pipeline.
