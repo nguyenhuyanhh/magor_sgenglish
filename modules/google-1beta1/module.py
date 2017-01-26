@@ -38,7 +38,7 @@ def google(file_id):
     transcribe_dir = os.path.join(working_dir, 'transcript', 'google')
     if not os.path.exists(transcribe_dir):
         os.makedirs(transcribe_dir)
-    temp_dir = os.path.join(working_dir, 'temp/')
+    temp_dir = os.path.join(working_dir, 'temp', 'google')
     if not os.path.exists(temp_dir):
         os.makedirs(temp_dir)
 

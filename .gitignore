@@ -10,5 +10,8 @@ data*/
 crawl/
 *.log
 
+# Singapore English systems
+modules/lvcsr*/systems
+
 # VSCode
 .vscode

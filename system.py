@@ -134,5 +134,6 @@ class Speech():
             self.transcribe()
 
 if __name__ == '__main__':
-    SP = Speech(filename='recording20161027230522.wav', procedure_id='google')
+    SP = Speech(filename='TRAILER_DebateIQ_Budget_2016.wav',
+                procedure_id='lvcsr')
     SP.pipeline()

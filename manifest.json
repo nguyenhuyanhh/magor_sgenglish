@@ -24,11 +24,12 @@
                 "key.json"
             ]
         },
-        "lvcsr": {
+        "lvcsr-1601": {
             "type": "transcribe",
-            "version": "1.0",
+            "version": "1601",
             "requires": [
-                "run.sh"
+                "scripts",
+                "systems"
             ]
         }
     },
@@ -38,6 +39,12 @@
             "resample": "resample-1.0",
             "diarize": "diarize-8.4.1",
             "transcribe": "google-1beta1"
+        },
+        "lvcsr": {
+            "raw": "raw-1.0",
+            "resample": "resample-1.0",
+            "diarize": "diarize-8.4.1",
+            "transcribe": "lvcsr-1601"
         }
     }
 }
