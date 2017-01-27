@@ -34,8 +34,11 @@ class Speech():
 
     def __init__(self, filename, procedure_id):
         self.filename = filename
+        LOG.info("Filename: %s.", self.filename)
         self.file_id = slugify(os.path.splitext(filename)[0])
+        LOG.info("File ID: %s.", self.file_id)
         self.procedure_id = procedure_id
+        LOG.info('Procedure: %s.', self.procedure_id)
 
         # set later during verify()
         self.raw_mod = None
@@ -49,8 +52,6 @@ class Speech():
         if self.procedure_id not in PROCEDURES.keys():
             LOG.info('Procedure %s does not exist.', self.procedure_id)
             return False
-        else:
-            LOG.info('Procedure %s.', self.procedure_id)
 
         # verify modules
         procedure = PROCEDURES[self.procedure_id]
@@ -133,7 +134,14 @@ class Speech():
             self.diarize()
             self.transcribe()
 
+
+def workflow():
+    """Processing workflow."""
+    for filename in os.listdir(CRAWL_DIR):
+        path_ = os.path.join(CRAWL_DIR, filename)
+        if os.path.isfile(path_):
+            Speech(filename=filename, procedure_id='google').pipeline()
+            Speech(filename=filename, procedure_id='lvcsr').pipeline()
+
 if __name__ == '__main__':
-    SP = Speech(filename='TRAILER_DebateIQ_Budget_2016.wav',
-                procedure_id='lvcsr')
-    SP.pipeline()
+    workflow()
