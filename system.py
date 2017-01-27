@@ -34,9 +34,9 @@ class Speech():
 
     def __init__(self, filename, procedure_id):
         self.filename = filename
-        LOG.info("Filename: %s.", self.filename)
+        LOG.info('Filename: %s.', self.filename)
         self.file_id = slugify(os.path.splitext(filename)[0])
-        LOG.info("File ID: %s.", self.file_id)
+        LOG.info('File ID: %s.', self.file_id)
         self.procedure_id = procedure_id
         LOG.info('Procedure: %s.', self.procedure_id)
 
@@ -48,9 +48,11 @@ class Speech():
 
     def verify(self):
         """Verify the procedure and modules."""
+        LOG.info('Verifying procedures and modules...')
+
         # verify procedure
         if self.procedure_id not in PROCEDURES.keys():
-            LOG.info('Procedure %s does not exist.', self.procedure_id)
+            LOG.info('Procedure %s does not exist', self.procedure_id)
             return False
 
         # verify modules
@@ -67,18 +69,24 @@ class Speech():
             for exec_ in execs:
                 exec_path = os.path.join(MODULES_DIR, mod_, exec_)
                 if not os.path.exists(exec_path):
-                    LOG.info('Module %s version %s: %s does not exist.',
+                    LOG.info('Module %s version %s: %s does not exist',
                              mod_, module['version'], exec_)
                     return False
-                else:
-                    LOG.info('Module %s version %s: %s.',
-                             mod_, module['version'], exec_)
+        LOG.info("Verification completed. Setting modules...")
 
         # set modules
-        self.raw_mod = procedure['raw']
-        self.resample_mod = procedure['resample']
-        self.diarize_mod = procedure['diarize']
-        self.transcribe_mod = procedure['transcribe']
+        if 'raw' in procedure.keys():
+            self.raw_mod = procedure['raw']
+            LOG.info('Raw module: %s', self.raw_mod)
+        if 'resample' in procedure.keys():
+            self.resample_mod = procedure['resample']
+            LOG.info('Resample module: %s', self.resample_mod)
+        if 'diarize' in procedure.keys():
+            self.diarize_mod = procedure['diarize']
+            LOG.info('Diarize module: %s', self.diarize_mod)
+        if 'transcribe' in procedure.keys():
+            self.transcribe_mod = procedure['transcribe']
+            LOG.info('Transcribe module: %s', self.transcribe_mod)
 
         return True
 
@@ -129,10 +137,19 @@ class Speech():
     def pipeline(self):
         """Pipeline for processing."""
         if self.verify():
-            self.raw()
-            self.resample()
-            self.diarize()
-            self.transcribe()
+            if self.raw_mod is not None:
+                self.raw()
+            if self.resample_mod is not None:
+                self.resample()
+            if self.diarize_mod is not None:
+                self.diarize()
+            if self.transcribe_mod is not None:
+                self.transcribe()
+            LOG.info('Pipeline completed for %s using procedure %s',
+                     self.filename, self.procedure_id)
+        else:
+            LOG.info('Verification failed for %s using procedure %s',
+                     self.filename, self.procedure_id)
 
 
 def workflow():
@@ -140,8 +157,7 @@ def workflow():
     for filename in os.listdir(CRAWL_DIR):
         path_ = os.path.join(CRAWL_DIR, filename)
         if os.path.isfile(path_):
-            Speech(filename=filename, procedure_id='google').pipeline()
-            Speech(filename=filename, procedure_id='lvcsr').pipeline()
+            Speech(filename=filename, procedure_id='test').pipeline()
 
 if __name__ == '__main__':
     workflow()
