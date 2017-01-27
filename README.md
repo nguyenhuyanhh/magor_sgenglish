@@ -4,9 +4,17 @@ This is a demo.
 
 The final system aims to be an automated transcription system that takes in audio/ video files as input, then performs sampling, diarization and transcription using both Google Speech APIs, as well as in-house LVCSR system.
 
+## Pre-requisites
+
+1. Linux
+1. Python (both 2 and 3 are okay)
+1. Java (minimum Java 7)
+1. Kaldi with sequitur, and `$KALDI_ROOT` environment variable set in `~/.bashrc` 
+
 ## Setup
 
 1. Clone thís project
+1. Install python dependencies: `$ sudo pip install -r requirements.txt`
 1. Acquire the necessary files not included in the repository (`modules/google*/key.json` and `modules/lvcsr*/systems`)
 1. Crawl (put) files into `/crawl`
 1. Run the system: `$ python system.py`
