@@ -18,7 +18,7 @@ if not os.path.exists(CRAWL_DIR):
 
 MODULE_NAME = 'system'
 logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s (%(name)s) : %(message)s')
+                    format='%(asctime)s (%(name)s | %(levelname)s) : %(message)s')
 LOG = logging.getLogger(MODULE_NAME)
 
 MANIFEST_FILE = os.path.join(CUR_DIR, 'manifest.json')

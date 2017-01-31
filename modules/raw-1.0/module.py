@@ -21,11 +21,14 @@ DATA_DIR = os.path.join(ROOT_DIR, 'data/')
 CRAWL_DIR = os.path.join(ROOT_DIR, 'crawl/')
 AUDIO_EXTS = ['.wav', '.mp3']
 
-MODULE_NAME = 'raw-1.0'
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s (%(name)s) : %(message)s')
-logging.getLogger().disabled = True
+MODULE_NAME = 'system.raw-1.0'
+LOG_H = logging.StreamHandler()
+LOG_F = logging.Formatter(
+    '%(asctime)s (%(name)s | %(levelname)s) : %(message)s')
+LOG_H.setFormatter(LOG_F)
 LOG = logging.getLogger(MODULE_NAME)
+LOG.addHandler(LOG_H)
+LOG.setLevel(logging.INFO)
 
 
 def raw(filename):

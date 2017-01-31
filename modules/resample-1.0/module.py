@@ -16,6 +16,14 @@ CUR_DIR = os.path.dirname(os.path.realpath(__file__))
 ROOT_DIR = os.path.dirname(os.path.dirname(CUR_DIR))
 DATA_DIR = os.path.join(ROOT_DIR, 'data/')
 
+MODULE_NAME = 'system.resample-1.0'
+LOG_H = logging.StreamHandler()
+LOG_F = logging.Formatter(
+    '%(asctime)s (%(name)s | %(levelname)s) : %(message)s')
+LOG_H.setFormatter(LOG_F)
+LOG = logging.getLogger(MODULE_NAME)
+LOG.addHandler(LOG_H)
+LOG.setLevel(logging.INFO)
 logging.getLogger().disabled = True
 
 
@@ -34,6 +42,8 @@ def resample(file_id):
     tfm = Transformer()
     tfm.convert(samplerate=16000, n_channels=1, bitdepth=16)
     tfm.build(audio_in, audio_out)
+
+    LOG.info('Resampled %s to %s', audio_in, audio_out)
 
 if __name__ == '__main__':
     resample(sys.argv[1])
