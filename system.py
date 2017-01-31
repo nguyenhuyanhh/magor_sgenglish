@@ -16,8 +16,10 @@ CRAWL_DIR = os.path.join(CUR_DIR, 'crawl/')
 if not os.path.exists(CRAWL_DIR):
     os.makedirs(CRAWL_DIR)
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s : %(message)s')
-LOG = logging.getLogger(__name__)
+MODULE_NAME = 'system'
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s (%(name)s) : %(message)s')
+LOG = logging.getLogger(MODULE_NAME)
 
 MANIFEST_FILE = os.path.join(CUR_DIR, 'manifest.json')
 with open(MANIFEST_FILE, 'r') as file_:
