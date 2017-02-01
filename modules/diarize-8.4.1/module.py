@@ -34,18 +34,21 @@ def diarize(file_id):
     working_dir = os.path.join(DATA_DIR, file_id)
     resample_dir = os.path.join(working_dir, 'resample/')
     diarize_dir = os.path.join(working_dir, 'diarization/')
-    if not os.path.exists(diarize_dir):
-        os.makedirs(diarize_dir)
 
     # diarize
     resample_file = os.path.join(resample_dir, '{}.wav'.format(file_id))
     lium_path = os.path.join(CUR_DIR, 'LIUM_SpkDiarization-8.4.1.jar')
     diarize_file = os.path.join(diarize_dir, '{}.seg'.format(file_id))
-    fnull = open(os.devnull, 'w')
-    args = ['java', '-Xmx2048m', '-jar', lium_path, '--fInputMask=' +
-            resample_file, '--sOutputMask=' + diarize_file, '--doCEClustering', file_id]
-    LOG.debug('Command: %s', ' '.join(args))
-    subprocess.call(args, stdout=fnull, stderr=subprocess.STDOUT)
+    if os.path.exists(diarize_file):
+        LOG.debug('Previously diarized to %s', diarize_file)
+    else:
+        if not os.path.exists(diarize_dir):
+            os.makedirs(diarize_dir)
+        fnull = open(os.devnull, 'w')
+        args = ['java', '-Xmx2048m', '-jar', lium_path, '--fInputMask=' +
+                resample_file, '--sOutputMask=' + diarize_file, '--doCEClustering', file_id]
+        LOG.debug('Command: %s', ' '.join(args))
+        subprocess.call(args, stdout=fnull, stderr=subprocess.STDOUT)
 
 
 if __name__ == '__main__':

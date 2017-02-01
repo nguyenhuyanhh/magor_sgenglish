@@ -155,10 +155,15 @@ class Speech():
 
 def workflow():
     """Processing workflow."""
+    PROCEDURES['test'] = {
+        "raw": "raw-1.0",
+        "resample": "resample-1.0",
+        "diarize": "diarize-8.4.1"
+    }
     for filename in os.listdir(CRAWL_DIR):
         path_ = os.path.join(CRAWL_DIR, filename)
         if os.path.isfile(path_):
-            Speech(filename=filename, procedure_id='lvcsr').pipeline()
+            Speech(filename=filename, procedure_id='test').pipeline()
 
 if __name__ == '__main__':
     workflow()

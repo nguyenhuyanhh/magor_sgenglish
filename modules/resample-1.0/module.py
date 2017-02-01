@@ -37,17 +37,19 @@ def resample(file_id):
     working_dir = os.path.join(DATA_DIR, file_id)
     raw_dir = os.path.join(working_dir, 'raw/')
     resample_dir = os.path.join(working_dir, 'resample/')
-    if not os.path.exists(resample_dir):
-        os.makedirs(resample_dir)
 
     # resample
     audio_in = os.path.join(raw_dir, os.listdir(raw_dir)[0])
     audio_out = os.path.join(resample_dir, '{}.wav'.format(file_id))
-    tfm = Transformer()
-    tfm.convert(samplerate=16000, n_channels=1, bitdepth=16)
-    tfm.build(audio_in, audio_out)
-
-    LOG.debug('Resampled %s to %s', audio_in, audio_out)
+    if os.path.exists(audio_out) and os.path.getsize(audio_out) > 0:
+        LOG.debug('Previously resampled %s', audio_out)
+    else:
+        if not os.path.exists(resample_dir):
+            os.makedirs(resample_dir)
+        tfm = Transformer()
+        tfm.convert(samplerate=16000, n_channels=1, bitdepth=16)
+        tfm.build(audio_in, audio_out)
+        LOG.debug('Resampled %s to %s', audio_in, audio_out)
 
 if __name__ == '__main__':
     resample(sys.argv[1])

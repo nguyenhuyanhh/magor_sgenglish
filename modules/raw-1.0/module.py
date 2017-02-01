@@ -40,10 +40,14 @@ def raw(filename):
         file_id = slugify(name)
         working_dir = os.path.join(DATA_DIR, file_id + '/')
         raw_dir = os.path.join(working_dir, 'raw/')
-        if not os.path.exists(raw_dir):
-            os.makedirs(raw_dir)
-        shutil.copy2(file_path, raw_dir)
-        LOG.debug('Imported %s to %s', file_path, raw_dir)
+        raw_file = os.path.join(raw_dir, filename)
+        if os.path.exists(raw_file):
+            LOG.debug('Previously imported to %s', raw_file)
+        else:
+            if not os.path.exists(raw_dir):
+                os.makedirs(raw_dir)
+            shutil.copy2(file_path, raw_dir)
+            LOG.debug('Imported %s to %s', file_path, raw_dir)
 
 if __name__ == '__main__':
     raw(sys.argv[1])
