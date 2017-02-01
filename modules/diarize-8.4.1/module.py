@@ -1,11 +1,14 @@
 """
 Module: diarize
 Version: 8.4.1
+Author: Nguyen Huy Anh
+
 Requires: LIUM_SpkDiarization-8.4.1.jar
 
 Python wrapper for speaker diarization using LIUM
 """
 
+import logging
 import os
 import subprocess
 import sys
@@ -13,6 +16,16 @@ import sys
 CUR_DIR = os.path.dirname(os.path.realpath(__file__))
 ROOT_DIR = os.path.dirname(os.path.dirname(CUR_DIR))
 DATA_DIR = os.path.join(ROOT_DIR, 'data/')
+
+MODULE_NAME = 'diarize'
+LOG_H = logging.StreamHandler()
+LOG_F = logging.Formatter(
+    '%(asctime)s (%(name)s | %(levelname)s) : %(message)s')
+LOG_H.setFormatter(LOG_F)
+LOG = logging.getLogger(MODULE_NAME)
+LOG.propagate = False
+LOG.addHandler(LOG_H)
+LOG.setLevel(logging.DEBUG)
 
 
 def diarize(file_id):
@@ -31,7 +44,9 @@ def diarize(file_id):
     fnull = open(os.devnull, 'w')
     args = ['java', '-Xmx2048m', '-jar', lium_path, '--fInputMask=' +
             resample_file, '--sOutputMask=' + diarize_file, '--doCEClustering', file_id]
+    LOG.debug('Command: %s', ' '.join(args))
     subprocess.call(args, stdout=fnull, stderr=subprocess.STDOUT)
+
 
 if __name__ == '__main__':
     diarize(sys.argv[1])

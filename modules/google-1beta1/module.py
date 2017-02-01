@@ -1,6 +1,8 @@
 """
 Module: google
 Version: 1beta1
+Author: Nguyen Huy Anh
+
 Requires: key.json
 
 Transcribe a file_id into /transcript/google
@@ -27,6 +29,16 @@ DATA_DIR = os.path.join(ROOT_DIR, 'data/')
 logging.getLogger().disabled = True
 logging.getLogger('oauth2client').setLevel(logging.ERROR)
 logging.getLogger('googleapiclient').setLevel(logging.ERROR)
+
+MODULE_NAME = 'google'
+LOG_H = logging.StreamHandler()
+LOG_F = logging.Formatter(
+    '%(asctime)s (%(name)s | %(levelname)s) : %(message)s')
+LOG_H.setFormatter(LOG_F)
+LOG = logging.getLogger(MODULE_NAME)
+LOG.propagate = False
+LOG.addHandler(LOG_H)
+LOG.setLevel(logging.DEBUG)
 
 
 def google(file_id):
@@ -64,6 +76,7 @@ def google(file_id):
     temp_seg_to_dict = os.path.join(temp_dir, 'seg_to_dict.json')
     with open(temp_seg_to_dict, 'w') as file_out:
         json.dump(diarize_dict, file_out, sort_keys=True, indent=4)
+    LOG.debug('seg_to_dict operation completed')
 
     # dict to wav
     count = 1
@@ -82,6 +95,7 @@ def google(file_id):
     temp_dict_to_wav = os.path.join(temp_dir, 'dict_to_wav.json')
     with open(temp_dict_to_wav, 'w') as file_out:
         json.dump(diarize_dict, file_out, sort_keys=True, indent=4)
+    LOG.debug('dict_to_wav operation completed')
 
     # wav to trans
     sorted_keys = sorted([x for x in diarize_dict.keys()])
@@ -110,12 +124,15 @@ def google(file_id):
                 break
             except:
                 sleep(2**attempt + randint(0, 1000) / 1000)
+                LOG.debug('Retrying transcription for key %s', key)
                 attempt += 1
 
         if attempt == 6:
             new_value = (value[0], value[1], value[2], '')
+            LOG.debug('Failed transcription for key %s', key)
         elif 'results' not in sync_response.keys():
             new_value = (value[0], value[1], value[2], '')
+            LOG.debug('Empty transcription for key %s', key)
         else:
             result_list = sync_response['results']
             trans_list = list()
@@ -124,10 +141,12 @@ def google(file_id):
             result_str = ' '.join(trans_list)
             new_value = (value[0], value[1], value[2],
                          result_str.encode('utf-8'))
+            LOG.debug('Transcription acquired for key %s', key)
         diarize_dict[key] = new_value
     temp_wav_to_trans = os.path.join(temp_dir, 'wav_to_trans.json')
     with open(temp_wav_to_trans, 'w') as file_out:
         json.dump(diarize_dict, file_out, sort_keys=True, indent=4)
+    LOG.debug('wav_to_trans operation completed')
 
     # write transcript
     sorted_keys = sorted([x for x in diarize_dict.keys()])
@@ -141,6 +160,7 @@ def google(file_id):
         for key in sorted_keys:
             value = diarize_dict[key]
             file_out.write(value[3].encode('utf-8') + '\n')
+    LOG.debug('Written %s', google_file)
 
     # textgrid
     google_textgrid = os.path.join(
@@ -166,6 +186,7 @@ def google(file_id):
             file_out.write('            text = "{}"\n'.format(
                 value[3].encode('utf-8')))
             count += 1
+    LOG.debug('Written %s', google_textgrid)
 
 if __name__ == '__main__':
     google(sys.argv[1])

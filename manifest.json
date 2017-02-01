@@ -45,10 +45,6 @@
             "resample": "resample-1.0",
             "diarize": "diarize-8.4.1",
             "transcribe": "lvcsr-1601"
-        },
-        "test": {
-            "raw": "raw-1.0",
-            "resample": "resample-1.0"
         }
     }
 }

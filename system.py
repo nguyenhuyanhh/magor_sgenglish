@@ -16,10 +16,9 @@ CRAWL_DIR = os.path.join(CUR_DIR, 'crawl/')
 if not os.path.exists(CRAWL_DIR):
     os.makedirs(CRAWL_DIR)
 
-MODULE_NAME = 'system'
-logging.basicConfig(level=logging.INFO,
+logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s (%(name)s | %(levelname)s) : %(message)s')
-LOG = logging.getLogger(MODULE_NAME)
+LOG = logging.getLogger('system')
 
 MANIFEST_FILE = os.path.join(CUR_DIR, 'manifest.json')
 with open(MANIFEST_FILE, 'r') as file_:
@@ -159,7 +158,7 @@ def workflow():
     for filename in os.listdir(CRAWL_DIR):
         path_ = os.path.join(CRAWL_DIR, filename)
         if os.path.isfile(path_):
-            Speech(filename=filename, procedure_id='test').pipeline()
+            Speech(filename=filename, procedure_id='lvcsr').pipeline()
 
 if __name__ == '__main__':
     workflow()

@@ -21,14 +21,15 @@ DATA_DIR = os.path.join(ROOT_DIR, 'data/')
 CRAWL_DIR = os.path.join(ROOT_DIR, 'crawl/')
 AUDIO_EXTS = ['.wav', '.mp3']
 
-MODULE_NAME = 'system.raw-1.0'
+MODULE_NAME = 'raw'
 LOG_H = logging.StreamHandler()
 LOG_F = logging.Formatter(
     '%(asctime)s (%(name)s | %(levelname)s) : %(message)s')
 LOG_H.setFormatter(LOG_F)
 LOG = logging.getLogger(MODULE_NAME)
+LOG.propagate = False
 LOG.addHandler(LOG_H)
-LOG.setLevel(logging.INFO)
+LOG.setLevel(logging.DEBUG)
 
 
 def raw(filename):
@@ -42,7 +43,7 @@ def raw(filename):
         if not os.path.exists(raw_dir):
             os.makedirs(raw_dir)
         shutil.copy2(file_path, raw_dir)
-        LOG.info('Imported %s to %s', file_path, raw_dir)
+        LOG.debug('Imported %s to %s', file_path, raw_dir)
 
 if __name__ == '__main__':
     raw(sys.argv[1])
