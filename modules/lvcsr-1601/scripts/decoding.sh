@@ -47,6 +47,12 @@ latticedir=$temp_dir/lattice
 # logging
 module_name="lvcsr"
 
+# check for completion
+if [ -f $transcribe_dir/$file_id.csv ]; then
+	echo "$(date +'%F %T,%3N') ($module_name | DEBUG) : Previously transcribed $transcribe_dir/$file_id.csv"
+	exit 0
+fi
+
 # Kaldi segments and spk2utt files
 awk '$1 !~ /^;;/ {print $8"-"$1"-"$3/100.0"-"($3+$4)/100.0" "$1" "$3/100.0" "($3+$4)/100.0}' $diarize_file | sort -nk3 > $temp_dir/segments
 awk '{split($1,a,"-"); print $1" "a[1]  }'  $temp_dir/segments > $temp_dir/utt2spk
