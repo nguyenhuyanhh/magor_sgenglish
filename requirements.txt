@@ -3,6 +3,7 @@ python-slugify
 
 # Resample
 sox
+ffmpy
 
 # Google
 google-api-python-client

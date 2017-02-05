@@ -9,11 +9,13 @@ The final system aims to be an automated transcription system that takes in audi
 1. Linux
 1. Python (both 2 and 3 are okay)
 1. Java (minimum Java 7)
-1. Kaldi with sequitur, and `$KALDI_ROOT` environment variable set in `~/.bashrc` 
+1. Kaldi with sequitur, and `$KALDI_ROOT` environment variable set in `~/.bashrc`
+1. SoX
+1. FFmpeg
 
 ## Setup
 
-1. Clone thís project
+1. Clone this project
 1. Install python dependencies: `$ sudo pip install -r requirements.txt`
 1. Acquire the necessary files not included in the repository (`modules/google*/key.json` and `modules/lvcsr*/systems`)
 1. Crawl (put) files into `/crawl`
