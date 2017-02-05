@@ -163,7 +163,7 @@ def workflow():
     for filename in os.listdir(CRAWL_DIR):
         path_ = os.path.join(CRAWL_DIR, filename)
         if os.path.isfile(path_):
-            Speech(filename=filename, procedure_id='test').pipeline()
+            Speech(filename=filename, procedure_id='google').pipeline()
 
 if __name__ == '__main__':
     workflow()
