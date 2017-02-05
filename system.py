@@ -98,9 +98,9 @@ class Speech():
             args = ['python', exec_, self.filename]
             subprocess.call(args)
             LOG.info('Import completed for %s using module %s',
-                     self.filename, self.raw_mod)
+                     self.file_id, self.raw_mod)
         except:
-            LOG.info('Error occured.')
+            LOG.info('Error occured.', exc_info=True)
 
     def resample(self):
         """Resample a file using module resample."""
@@ -111,7 +111,7 @@ class Speech():
             LOG.info('Resampling completed for %s using module %s',
                      self.file_id, self.resample_mod)
         except:
-            LOG.info('Error occured.')
+            LOG.info('Error occured.', exc_info=True)
 
     def diarize(self):
         """Diarize a file using module diarize."""
@@ -122,7 +122,7 @@ class Speech():
             LOG.info('Diarization completed for %s using module %s',
                      self.file_id, self.diarize_mod)
         except:
-            LOG.info('Error occured.')
+            LOG.info('Error occured.', exc_info=True)
 
     def transcribe(self):
         """Transcribe a file using module google or lvcsr."""
@@ -133,7 +133,7 @@ class Speech():
             LOG.info('Transcription completed for %s using module %s',
                      self.file_id, self.transcribe_mod)
         except:
-            LOG.info('Error occured.')
+            LOG.info('Error occured.', exc_info=True)
 
     def pipeline(self):
         """Pipeline for processing."""
