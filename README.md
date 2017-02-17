@@ -19,7 +19,7 @@ The final system aims to be an automated transcription system that takes in audi
 1. Install python dependencies: `$ sudo pip install -r requirements.txt`
 1. Acquire the necessary files not included in the repository (`modules/google*/key.json` and `modules/lvcsr*/systems`)
 1. Crawl (put) files into `/crawl`
-1. Run the system: `$ python system.py`
+1. Run the system: `$ python system.py` or `$ python system.py -p [list of procedures separated by space]` (see `$ python system.py --help`)
 
 ## System structure
 
