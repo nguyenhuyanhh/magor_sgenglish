@@ -1,5 +1,6 @@
 """MAGOR 938 demo system."""
 
+import argparse
 import json
 import logging
 import os
@@ -153,17 +154,21 @@ class Speech():
                      self.filename, self.procedure_id)
 
 
-def workflow():
-    """Processing workflow."""
-    PROCEDURES['test'] = {
-        "raw": "raw-1.0",
-        "resample": "resample-1.0",
-        "diarize": "diarize-8.4.1"
-    }
+def workflow(procedure_list):
+    """Processing workflow, using a procedure list."""
     for filename in os.listdir(CRAWL_DIR):
         path_ = os.path.join(CRAWL_DIR, filename)
         if os.path.isfile(path_):
-            Speech(filename=filename, procedure_id='google').pipeline()
+            for procedure in procedure_list:
+                if procedure in PROCEDURES.keys():
+                    Speech(filename=filename, procedure_id=procedure).pipeline()
 
 if __name__ == '__main__':
-    workflow()
+    ARG_PARSER = argparse.ArgumentParser()
+    ARG_PARSER.add_argument('-p', '--procedures', metavar='procedure_id',
+                            help='procedures to pass to workflow', nargs='*')
+    ARGS = ARG_PARSER.parse_args()
+    if ARGS.procedures is None:
+        workflow(['google', 'lvcsr'])
+    else:
+        workflow(ARGS.procedures)
