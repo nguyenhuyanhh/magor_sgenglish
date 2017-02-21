@@ -136,16 +136,19 @@ def google(file_id):
                     attempt += 1
 
             if attempt == 6:
-                new_value = (value[0], value[1], value[2], '')
+                new_value = (value[0], value[1], value[2], '<unk>')
                 LOG.debug('Failed transcription for key %s', key)
             elif 'results' not in sync_response.keys():
-                new_value = (value[0], value[1], value[2], '')
+                new_value = (value[0], value[1], value[2], '<unk>')
                 LOG.debug('Empty transcription for key %s', key)
             else:
                 result_list = sync_response['results']
                 trans_list = list()
                 for item in result_list:
-                    trans_list.append(item['alternatives'][0]['transcript'])
+                    trans = item['alternatives'][0]['transcript'].strip()
+                    if len(trans) == 0:
+                        trans = '<unk>'
+                    trans_list.append(trans)
                 result_str = ' '.join(trans_list)
                 new_value = (value[0], value[1], value[2],
                              result_str.encode('utf-8'))
