@@ -7,7 +7,7 @@ modules/google*/key.json
 
 # Data
 data*/
-crawl/
+crawl*/
 *.log
 
 # Singapore English systems
