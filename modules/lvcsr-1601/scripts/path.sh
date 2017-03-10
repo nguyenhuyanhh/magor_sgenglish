@@ -1,5 +1,3 @@
-lvcsrRootDir=/home/nhanh/magor_938_demo/modules/lvcsr-1601
-
 export PATH=$KALDI_ROOT/tools/irstlm/bin:$PATH
 export PATH=$KALDI_ROOT/tools/sph2pipe_v2.5:$PATH
 export PATH=$KALDI_ROOT/tools/sctk/bin:$PATH

@@ -1,5 +1,9 @@
 #!/bin/bash
 
+curdir="$(dirname "$(dirname "$(realpath $0)" )" )"
+echo "lvcsrRootDir=$curdir" > temp.sh
+
+. temp.sh
 . cmd.sh
 . path.sh
 
@@ -50,6 +54,9 @@ module_name="lvcsr"
 # check for completion
 if [ -f $transcribe_dir/$file_id.csv ]; then
 	echo "$(date +'%F %T,%3N') ($module_name | DEBUG) : Previously transcribed $transcribe_dir/$file_id.csv"
+	if [ -f temp.sh ]; then
+		rm temp.sh
+	fi
 	exit 0
 fi
 
@@ -102,3 +109,7 @@ perl utils/stm2textgrid.pl $transcribe_dir/$file_id.stm > /dev/null 2>&1
 echo "$(date +'%F %T,%3N') ($module_name | DEBUG) : Written $transcribe_dir/$file_id.TextGrid"
 perl utils/textgrid2csv.pl $transcribe_dir/$file_id.TextGrid > /dev/null 2>&1
 echo "$(date +'%F %T,%3N') ($module_name | DEBUG) : Written $transcribe_dir/$file_id.csv"
+
+if [ -f temp.sh ]; then
+	rm temp.sh
+fi
