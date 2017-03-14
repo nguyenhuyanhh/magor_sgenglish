@@ -13,7 +13,7 @@ The final system aims to be an automated transcription system that takes in audi
 1. FFmpeg (`$ sudo apt-get install ffmpeg`)
 1. [Kaldi](https://github.com/kaldi-asr/kaldi) with sequitur, and `$KALDI_ROOT` environment variable set in `~/.bashrc`
 
-The system was developed using Python 2.7.12 on Lubuntu 16.04.1
+The system was developed using Python 2.7.12 on Lubuntu 16.04.1.
 
 ## Setup
 

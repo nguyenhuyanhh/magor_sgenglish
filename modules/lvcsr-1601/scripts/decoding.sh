@@ -99,8 +99,8 @@ score_value=9
 cp $latticedir/score_${score_value}/$ctmfilename.ctm $latticedir/$file_id.ctm
 sort -nk3 $latticedir/$file_id.ctm -o $transcribe_dir/$file_id.ctm
 echo "$(date +'%F %T,%3N') ($module_name | DEBUG) : Written $transcribe_dir/$file_id.ctm"
-python utils/ctm_2_trans.py $transcribe_dir/$file_id.ctm $diarize_file $transcribe_dir/$file_id.TextGrid
-echo "$(date +'%F %T,%3N') ($module_name | DEBUG) : Written $transcribe_dir/$file_id.TextGrid"
+python utils/ctm_2_trans.py $file_id $diarize_file $transcribe_dir/$file_id.ctm $transcribe_dir/$file_id.TextGrid $transcribe_dir/$file_id.stm $transcribe_dir/$file_id.csv
+echo "$(date +'%F %T,%3N') ($module_name | DEBUG) : Written $transcribe_dir/$file_id.TextGrid, $transcribe_dir/$file_id.stm, $transcribe_dir/$file_id.csv"
 
 if [ -f temp.sh ]; then
 	rm temp.sh
