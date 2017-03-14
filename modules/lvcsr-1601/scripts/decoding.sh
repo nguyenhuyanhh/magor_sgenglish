@@ -99,16 +99,8 @@ score_value=9
 cp $latticedir/score_${score_value}/$ctmfilename.ctm $latticedir/$file_id.ctm
 sort -nk3 $latticedir/$file_id.ctm -o $transcribe_dir/$file_id.ctm
 echo "$(date +'%F %T,%3N') ($module_name | DEBUG) : Written $transcribe_dir/$file_id.ctm"
-perl utils/ctm2stm.pl $transcribe_dir/$file_id.ctm $data/segments $transcribe_dir/$file_id.stm > /dev/null 2>&1
-echo "$(date +'%F %T,%3N') ($module_name | DEBUG) : Written $transcribe_dir/$file_id.stm"
-
-# write_transcript
-cat $transcribe_dir/$file_id.stm | awk 'var=1{$3="S1"; print $0}' > $transcribe_dir/tmp
-mv $transcribe_dir/tmp $transcribe_dir/$file_id.stm
-perl utils/stm2textgrid.pl $transcribe_dir/$file_id.stm > /dev/null 2>&1
+python utils/ctm_2_trans.py $transcribe_dir/$file_id.ctm $diarize_file $transcribe_dir/$file_id.TextGrid
 echo "$(date +'%F %T,%3N') ($module_name | DEBUG) : Written $transcribe_dir/$file_id.TextGrid"
-perl utils/textgrid2csv.pl $transcribe_dir/$file_id.TextGrid > /dev/null 2>&1
-echo "$(date +'%F %T,%3N') ($module_name | DEBUG) : Written $transcribe_dir/$file_id.csv"
 
 if [ -f temp.sh ]; then
 	rm temp.sh
