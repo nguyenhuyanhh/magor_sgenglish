@@ -1,17 +1,19 @@
 # magor_sgenglish
 
-This is a demo.
+This is in development.
 
 The final system aims to be an automated transcription system that takes in audio/ video files as input, then performs sampling, diarization and transcription using both Google Speech APIs, as well as in-house LVCSR system.
 
 ## Pre-requisites
 
-1. Linux
-1. Python (both 2 and 3 are okay)
-1. Java (minimum Java 7)
-1. Kaldi with sequitur, and `$KALDI_ROOT` environment variable set in `~/.bashrc`
-1. SoX
-1. FFmpeg
+1. Linux, with `realpath` util installed
+1. Python (either 2 or 3)
+1. Java (minimum Java 7) 
+1. SoX (`$ sudo apt-get install sox libsox-fmt-all`)
+1. FFmpeg (`$ sudo apt-get install ffmpeg`)
+1. [Kaldi](https://github.com/kaldi-asr/kaldi) with sequitur, and `$KALDI_ROOT` environment variable set in `~/.bashrc`
+
+The system was developed using Python 2.7.12 on Lubuntu 16.04.1
 
 ## Setup
 

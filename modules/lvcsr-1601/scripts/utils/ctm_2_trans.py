@@ -35,9 +35,20 @@ def parse_ctm_seg(ctm_file, seg_file):
     end_file = sorted(segments.keys(), reverse=True)[0][1]
     for spk_id, str_ends in result.items():
         temp = list()
+        spk_str = end_file
+        spk_end = Decimal(0)
         for str_end in str_ends:
-            temp.append({k: v for k, v in segments.items() if k == str_end})
+            for key, value in segments.items():
+                if key == str_end:
+                    if key[0] < spk_str:
+                        spk_str = key[0]
+                    if key[1] > spk_end:
+                        spk_end = key[1]
+                    temp.append({key: value})
+        temp.append((spk_str, spk_end))
         result[spk_id] = temp
+    print result
+    print end_file
     return result, end_file
 
 
@@ -65,16 +76,19 @@ def ctm_2_trans(ctm_file, seg_file, textgrid_file):
             spk_count += 1
             txt_.write(tab8 + 'class = "IntervalTier"\n')
             txt_.write(tab8 + 'name = "{}"\n'.format(spk_id))
-            txt_.write(tab8 + 'xmin = 0.0\n')
-            txt_.write(tab8 + 'xmax = {}\n'.format(end_file))
-            txt_.write(tab8 + 'intervals: size = {}\n'.format(len(segs)))
+            txt_.write(tab8 + 'xmin = {}\n'.format(segs[len(segs) - 1][0]))
+            txt_.write(tab8 + 'xmax = {}\n'.format(segs[len(segs) - 1][1]))
+            txt_.write(tab8 + 'intervals: size = {}\n'.format(len(segs) - 1))
             seg_count = 1
-            for seg in segs:
+            while seg_count < len(segs):
                 txt_.write(tab8 + 'intervals [{}]\n'.format(seg_count))
+                txt_.write(
+                    tab12 + 'xmin = {}\n'.format(segs[seg_count - 1].keys()[0][0]))
+                txt_.write(
+                    tab12 + 'xmax = {}\n'.format(segs[seg_count - 1].keys()[0][1]))
+                txt_.write(
+                    tab12 + 'text = "{}"\n'.format(segs[seg_count - 1].values()[0]))
                 seg_count += 1
-                txt_.write(tab12 + 'xmin = {}\n'.format(seg.keys()[0][0]))
-                txt_.write(tab12 + 'xmax = {}\n'.format(seg.keys()[0][1]))
-                txt_.write(tab12 + 'text = "{}"\n'.format(seg.values()[0]))
 
 
 if __name__ == "__main__":
