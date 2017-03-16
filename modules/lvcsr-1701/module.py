@@ -1,6 +1,6 @@
 """
 Module: lvcsr
-Version: 1601
+Version: 1701
 Author: Nguyen Huy Anh
 
 Requires: scripts/, systems/

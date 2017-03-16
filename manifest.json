@@ -24,9 +24,9 @@
                 "key.json"
             ]
         },
-        "lvcsr-1601": {
+        "lvcsr-1701": {
             "type": "transcribe",
-            "version": "1601",
+            "version": "1701",
             "requires": [
                 "scripts",
                 "systems"
@@ -44,7 +44,7 @@
             "raw": "raw-1.0",
             "resample": "resample-1.0",
             "diarize": "diarize-8.4.1",
-            "transcribe": "lvcsr-1601"
+            "transcribe": "lvcsr-1701"
         }
     }
 }
