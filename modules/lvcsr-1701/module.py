@@ -32,14 +32,16 @@ def lvcsr(file_id):
     """Transcribe a file using LVCSR system, into /transcript/lvcsr."""
     # init paths
     system_dir = os.path.join(CUR_DIR, 'systems')
+    scripts_dir = os.path.join(CUR_DIR, 'scripts/')
     graph_dir = os.path.join(system_dir, 'graph')
     nnet_dir = os.path.join(system_dir, 'fbank_nnet')
 
     # transcribe
-    os.chdir(os.path.join(CUR_DIR, 'scripts/'))
+    os.chdir(scripts_dir)
     args = ['./decoding.sh', system_dir, graph_dir, nnet_dir, file_id]
     LOG.debug('Command: %s', ' '.join(args))
     subprocess.call(args)
+    os.remove(os.path.join(scripts_dir, 'temp.sh'))  # cleanup
 
 if __name__ == '__main__':
     lvcsr(sys.argv[1])

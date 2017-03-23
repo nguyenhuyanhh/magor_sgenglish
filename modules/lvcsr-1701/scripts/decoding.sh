@@ -54,9 +54,6 @@ module_name="lvcsr"
 # check for completion
 if [ -f $transcribe_dir/$file_id.csv ]; then
 	echo "$(date +'%F %T,%3N') ($module_name | DEBUG) : Previously transcribed $transcribe_dir/$file_id.csv"
-	if [ -f temp.sh ]; then
-		rm temp.sh
-	fi
 	exit 0
 fi
 
@@ -101,7 +98,3 @@ sort -nk3 $latticedir/$file_id.ctm -o $transcribe_dir/$file_id.ctm
 echo "$(date +'%F %T,%3N') ($module_name | DEBUG) : Written $transcribe_dir/$file_id.ctm"
 python utils/ctm_2_trans.py $file_id $diarize_file $transcribe_dir/$file_id.ctm $transcribe_dir/$file_id.TextGrid $transcribe_dir/$file_id.stm $transcribe_dir/$file_id.csv
 echo "$(date +'%F %T,%3N') ($module_name | DEBUG) : Written $transcribe_dir/$file_id.TextGrid, $transcribe_dir/$file_id.stm, $transcribe_dir/$file_id.csv"
-
-if [ -f temp.sh ]; then
-	rm temp.sh
-fi
