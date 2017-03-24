@@ -183,7 +183,7 @@ def trans_to_tg(diarize_dict, resample_file, temp_dir, google_textgrid):
             spk_count += 1
             seg_count = 1
             for seg in segs:
-                file_out.write(tab8 + 'intervals [{}]\n'.format(seg_count))
+                file_out.write(tab8 + 'intervals [{}]:\n'.format(seg_count))
                 file_out.write(tab12 + 'xmin = {}\n'.format(seg[0]))
                 file_out.write(tab12 + 'xmax = {}\n'.format(seg[1]))
                 file_out.write(tab12 + 'text = "{}"\n'.format(seg[2]))

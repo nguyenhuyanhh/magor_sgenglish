@@ -82,7 +82,7 @@ def ctm_2_trans(file_id, seg_file, ctm_file, textgrid_file, stm_file, csv_file):
             txt_.write(tab8 + 'intervals: size = {}\n'.format(len(segs) - 1))
             seg_count = 1
             while seg_count < len(segs):
-                txt_.write(tab8 + 'intervals [{}]\n'.format(seg_count))
+                txt_.write(tab8 + 'intervals [{}]:\n'.format(seg_count))
                 txt_.write(
                     tab12 + 'xmin = {}\n'.format(segs[seg_count - 1].keys()[0][0]))
                 txt_.write(
