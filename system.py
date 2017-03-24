@@ -28,6 +28,57 @@ PROCEDURES = MANIFEST['procedures']
 MODULES = MANIFEST['modules']
 
 
+def manifest_check():
+    """
+    Check the manifest at startup for consistency.
+    Disable violating modules/ procedures.
+    """
+    LOG.info('Startup manifest checks...')
+    # check modules
+    mod_violate = list()
+    for mod_id, mod_ in MODULES.items():
+        mod_path = os.path.join(MODULES_DIR, mod_id)
+        if not os.path.exists(mod_path):
+            LOG.info('Cannot find module %s at %s', mod_id, mod_path)
+            mod_violate.append(mod_id)
+            continue
+        else:
+            mod_reqs = mod_['requires'] + ['module.py']
+            for mod_req in mod_reqs:
+                mod_req_path = os.path.join(mod_path, mod_req)
+                if not os.path.exists(mod_req_path):
+                    LOG.info('Cannot find module %s requirement at %s',
+                             mod_id, mod_req_path)
+                    mod_violate.append(mod_id)
+                    break
+    for mod_id in mod_violate:
+        del MODULES[mod_id]
+    LOG.info('Valid modules: %s', ', '.join(MODULES.keys()))
+
+    # check procedures
+    proc_violate = list()
+    for proc_id, proc_ in PROCEDURES.items():
+        proc_inputs = set()
+        for proc in proc_:
+            if proc not in MODULES.keys():
+                LOG.info('Invalid module %s for procedure %s', proc, proc_id)
+                proc_violate.append(proc_id)
+                break
+            else:
+                tmp_in = set(MODULES[proc]['inputs'])
+                tmp_out = set(MODULES[proc]['outputs'])
+                if not tmp_in.issubset(proc_inputs):
+                    LOG.info(
+                        'Invalid requirements for module %s in procedure %s', proc, proc_id)
+                    proc_violate.append(proc_id)
+                    break
+                else:
+                    proc_inputs = proc_inputs.union(tmp_out)
+    for proc_id in proc_violate:
+        del PROCEDURES[proc_id]
+    LOG.info('Valid procedures: %s ', ', '.join(PROCEDURES.keys()))
+
+
 class Process():
     """
     Processing tasks.

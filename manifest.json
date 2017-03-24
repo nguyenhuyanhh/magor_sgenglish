@@ -1,50 +1,80 @@
 {
     "modules": {
         "raw-1.0": {
-            "type": "raw",
+            "name": "raw",
             "version": "1.0",
-            "requires": []
+            "requires": [],
+            "inputs": [],
+            "outputs": [
+                "raw"
+            ]
         },
         "resample-1.0": {
-            "type": "resample",
+            "name": "resample",
             "version": "1.0",
-            "requires": []
+            "requires": [],
+            "inputs": [
+                "raw"
+            ],
+            "outputs": [
+                "resample"
+            ]
         },
         "diarize-8.4.1": {
-            "type": "diarize",
+            "name": "diarize",
             "version": "8.4.1",
             "requires": [
                 "LIUM_SpkDiarization-8.4.1.jar"
+            ],
+            "inputs": [
+                "resample"
+            ],
+            "outputs": [
+                "diarize"
             ]
         },
         "google-1beta1": {
-            "type": "transcribe",
+            "name": "google",
             "version": "1beta1",
             "requires": [
                 "key.json"
+            ],
+            "inputs": [
+                "resample",
+                "diarize"
+            ],
+            "outputs": [
+                "transcript/google"
             ]
         },
         "lvcsr-1701": {
-            "type": "transcribe",
+            "name": "lvcsr",
             "version": "1701",
             "requires": [
                 "scripts",
                 "systems"
+            ],
+            "inputs": [
+                "resample",
+                "diarize"
+            ],
+            "outputs": [
+                "transcript/lvcsr"
             ]
         }
     },
     "procedures": {
-        "google": {
-            "raw": "raw-1.0",
-            "resample": "resample-1.0",
-            "diarize": "diarize-8.4.1",
-            "transcribe": "google-1beta1"
-        },
-        "lvcsr": {
-            "raw": "raw-1.0",
-            "resample": "resample-1.0",
-            "diarize": "diarize-8.4.1",
-            "transcribe": "lvcsr-1701"
-        }
+        "google": [
+            "raw-1.0",
+            "resample-1.0",
+            "diarize-8.4.1",
+            "google-1beta1"
+        ],
+        "lvcsr": [
+            "raw-1.0",
+            "resample-1.0",
+            "diarize-8.4.1",
+            "lvcsr-1701"
+        ]
     }
 }
