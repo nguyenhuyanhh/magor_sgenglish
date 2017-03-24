@@ -2,16 +2,16 @@
 
 This is in development.
 
-The final system aims to be an automated transcription system that takes in audio/ video files as input, then performs sampling, diarization and transcription using both Google Speech APIs, as well as in-house LVCSR system.
+The final system takes in audio/ video files as input, then performs a number of processing tasks in a pipeline - sampling, diarization, transcription using Google Speech APIs/ in-house LVCSR system, keyframe captioning, etc.
 
-## Pre-requisites
+The repository includes the core system, as well as a collection of reference modules for the above-mentioned tasks.
 
-1. Linux, with `realpath` util installed
+## System pre-requisites
+
+This is the requisites for the core system only. For module-specific requirements, consult the [Modules](#modules) section below.
+
+1. Linux
 1. Python (either 2 or 3)
-1. Java (minimum Java 7) 
-1. SoX (`$ sudo apt-get install sox libsox-fmt-all`)
-1. FFmpeg (`$ sudo apt-get install ffmpeg`)
-1. [Kaldi](https://github.com/kaldi-asr/kaldi) with sequitur, and `$KALDI_ROOT` environment variable set in `~/.bashrc`
 
 The system was developed using Python 2.7.12 on Lubuntu 16.04.1.
 
@@ -19,28 +19,20 @@ The system was developed using Python 2.7.12 on Lubuntu 16.04.1.
 
 1. Clone this project
 1. Install python dependencies: `$ sudo pip install -r requirements.txt`
-1. Acquire the necessary files not included in the repository (`modules/google*/key.json` and `modules/lvcsr*/systems`)
+1. Setup the module dependencies as prescribed in [Modules](#modules)
 1. Crawl (put) files into `/crawl`
 1. Run the system: `$ python system.py` or `$ python system.py -p [list of procedures separated by space]` (see `$ python system.py --help`)
 
-## System structure
+## Documentation
+
+### Overall file structure
 
 Non-critical files are omitted for brevity.
 
 ```
-crawl/                  # folder for raw files (from crawler or manual input)
-data/                   # folder for main data 
-    file_id_1/
-        raw/            # raw file
-        resample/       # resampled file (.wav)
-        diarization/    # diarization file (.seg)
-        transcript/
-            google/     # Google transcript (.txt, .TextGrid)
-            lvcsr/      # LVCSR transcript (.stm, .ctm, .csv, .TextGrid)
-    file_id_2/
-        ...
-    ...
-modules/                # folder for modules
+crawl/                  # raw files (from crawler or manual input)
+data/                   # main data 
+modules/                # modules
     raw*/
     resample*/
     diarize*/
@@ -53,7 +45,32 @@ manifest.json           # system manifest
 system.py               # system executable
 ```
 
-## Manifest file structure
+### Modules
+
+WIP.
+
+### Data folder structure
+
+The `/data` folder structure allows independent module outputs to be stored in their respective folders. Each file is identifiable by `file_id`, a slug of the original file name.
+
+```
+data/
+    file_id_1/
+        raw/            # output of module raw: raw file (.mp3, .mp4, .wav)
+        resample/       # output of module resample: resampled file (.wav)
+        diarization/    # output of module diarize: diarization file (.seg)
+        transcript/
+            google/     # output of module google: Google transcript (.txt, .TextGrid)
+            lvcsr/      # output of module lvcsr: LVCSR transcript (.stm, .ctm, .csv, .TextGrid)
+        temp/           # temp files for each module
+            google/
+            lvcsr/
+    file_id_2/
+        ...
+    ...
+```
+
+### Manifest file structure
 
 An example would be the included `manifest.json`.
 
