@@ -55,7 +55,7 @@ The `/data` folder structure allows independent module outputs to be stored in t
 
 ```
 data/
-    file_id_1/
+    file-id-1/
         raw/            # output of module raw: raw file (.mp3, .mp4, .wav)
         resample/       # output of module resample: resampled file (.wav)
         diarization/    # output of module diarize: diarization file (.seg)
@@ -65,7 +65,7 @@ data/
         temp/           # temp files for each module
             google/
             lvcsr/
-    file_id_2/
+    file-id-2/
         ...
     ...
 ```
@@ -78,20 +78,22 @@ An example would be the included `manifest.json`.
 {
     "modules":{
         "module-id-1":{
-            "type":"",
+            "name":"",
             "version":"",
-            "requires":[]
+            "requires":[],
+            "inputs":[],
+            "outputs":[]
         },
         "module-id-2":{}
     },
     "procedures":{
-        "procedure-id-1":{
-            "raw":"",
-            "resample":"",
-            "diarize":"",
-            "transcribe":""
-        },
-        "procedure-id-2":{}
+        "procedure-id-1":[
+            "raw*",
+            "resample*",
+            "diarize*",
+            "google*"
+        ],
+        "procedure-id-2":[]
     }
 }
 ```
@@ -101,13 +103,12 @@ Field types and value constraints:
 | Field | Type | Constraint
 | --- | --- | --- 
 | `module-id` | `str` | Must be the name of a subfolder under `/modules`
-| -- `type` | `str` | Must be one of "raw", "resample", "diarize", "transcribe"
+| -- `name` | `str` | 
 | -- `version` | `str` |
-| -- `requires` | `list(str)` | Module dependencies (required paths under `modules/module-id`)
+| -- `requires` | `list(str)` | Module dependencies (required paths under `/modules/module-id`)
+| -- `inputs` | `list(str)` | Module inputs (subfolders under `/data/file-id`)
+| -- `outputs` | `list(str)` | Module outputs (subfolders under `/data/file-id`)
 | `procedure-id` | `str` | 
-| -- `raw` | `str` | Must be a `module-id`
-| -- `resample` | `str` | Must be a `module-id`
-| -- `diarize` | `str` | Must be a `module-id`
-| -- `transcribe` | `str` | Must be a `module-id`
+| -- procedures | `list(str)` | List of modules in the procedure
 
-The specific instance of the class `Speech()` in `speech.py` would load the manifest and check whether the procedure is valid and all its modules and their dependencies (`requires`) are met before invoking the processing pipeline.
+The method `manifest_check()` called at system start-up would check the manifest for consistency with the actual system, and disable violating modules/ procedures.

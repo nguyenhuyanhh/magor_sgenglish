@@ -1,4 +1,4 @@
-"""MAGOR 938 demo system."""
+"""Core system for magor_sgenglish."""
 
 import argparse
 import json
@@ -28,10 +28,10 @@ PROCEDURES = MANIFEST['procedures']
 MODULES = MANIFEST['modules']
 
 
-class Speech():
+class Process():
     """
-    Speech processing tasks.
-    Syntax: Speech(filename, procedure_id)
+    Processing tasks.
+    Syntax: Process(filename, procedure_id)
     """
 
     def __init__(self, filename, procedure_id):
@@ -161,7 +161,8 @@ def workflow(procedure_list):
         if os.path.isfile(path_):
             for procedure in procedure_list:
                 if procedure in PROCEDURES.keys():
-                    Speech(filename=filename, procedure_id=procedure).pipeline()
+                    Process(filename=filename,
+                            procedure_id=procedure).pipeline()
 
 if __name__ == '__main__':
     ARG_PARSER = argparse.ArgumentParser()
