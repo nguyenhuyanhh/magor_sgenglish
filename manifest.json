@@ -52,6 +52,20 @@
             "outputs": [
                 "transcript/lvcsr"
             ]
+        },
+        "capgen-1.0": {
+            "name": "capgen",
+            "version": "1.0",
+            "requires": [
+                "model",
+                "neuraltalk2"
+            ],
+            "inputs": [
+                "raw"
+            ],
+            "outputs": [
+                "keyframes"
+            ]
         }
     },
     "procedures": {
@@ -64,6 +78,9 @@
             "resample-1.0",
             "diarize-8.4.1",
             "lvcsr-1701"
+        ],
+        "capgen": [
+            "capgen-1.0"
         ]
     },
     "file_types": {
