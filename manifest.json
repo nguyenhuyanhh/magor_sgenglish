@@ -1,14 +1,5 @@
 {
     "modules": {
-        "raw-1.0": {
-            "name": "raw",
-            "version": "1.0",
-            "requires": [],
-            "inputs": [],
-            "outputs": [
-                "raw"
-            ]
-        },
         "resample-1.0": {
             "name": "resample",
             "version": "1.0",
@@ -65,16 +56,23 @@
     },
     "procedures": {
         "google": [
-            "raw-1.0",
             "resample-1.0",
             "diarize-8.4.1",
             "google-1beta1"
         ],
         "lvcsr": [
-            "raw-1.0",
             "resample-1.0",
             "diarize-8.4.1",
             "lvcsr-1701"
+        ]
+    },
+    "file_types": {
+        "audio": [
+            ".wav",
+            ".mp3"
+        ],
+        "video": [
+            ".mp4"
         ]
     }
 }
