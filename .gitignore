@@ -13,8 +13,5 @@ crawl*/
 # Singapore English systems
 modules/lvcsr*/systems
 
-# Caption generator
-modules/capgen*/model
-
 # VSCode
 .vscode

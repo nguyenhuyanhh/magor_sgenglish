@@ -57,7 +57,6 @@
             "name": "capgen",
             "version": "1.0",
             "requires": [
-                "model",
                 "neuraltalk2"
             ],
             "inputs": [
