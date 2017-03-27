@@ -1,0 +1,3 @@
+[submodule "modules/capgen-1.0/neuraltalk2"]
+	path = modules/capgen-1.0/neuraltalk2
+	url = https://github.com/nguyenhuyanhh/neuraltalk2.git
