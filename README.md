@@ -100,7 +100,7 @@ The modules included within this repository are:
 | `diarize` | 8.4.1 | `diarize-8.4.1` | Nguyen Huy Anh | Java 7 (at least) installed. Recommended to install [JDK 7/8](http://www.webupd8.org/2012/09/install-oracle-java-8-in-ubuntu-via-ppa.html)
 | `google` | 1beta1 | `google-1beta1` | Nguyen Huy Anh | A valid Google Service Account Key as `google*/key.json`. [How to acquire key](https://support.google.com/googleapi/answer/6158849)
 | `lvcsr` | 1701 | `lvcsr-1701` | Xu Haihua/ Nguyen Huy Anh | <ol><li>Install [Kaldi](https://github.com/kaldi-asr/kaldi) with `sequitur` (included in `/tools` after successful installation)</li><li>Include `$KALDI_ROOT` as an environment variable in `~/.bashrc`</li><li>Acquire the models and put into `/lvcsr*/systems` (The Singapore-English LVCSR models by Xu Haihua is the property of [Speech and Language Technology Program, School of Computer Science and Engineering, NTU](http://www.ntu.edu.sg/home/aseschng/SpeechTechWeb/About_Us/about_us.html))</li></ol>
-| `capgen` | 1.0 | `capgen-1.0` | Peter/ Nguyen Huy Anh | Follow the instructions [here](https://github.com/karpathy/neuraltalk2)
+| `capgen` | 1.0 | `capgen-1.0` | Peter/ Nguyen Huy Anh | Follow the instructions [here](https://github.com/karpathy/neuraltalk2). Also, put the cpu checkpoints in `capgen*/neuraltalk2/model/`
 
 Some of the setup procedures could be quite tedious; automatic installation/ configuration scripts would be included if there is time.
 

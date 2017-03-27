@@ -42,8 +42,10 @@
             "name": "lvcsr",
             "version": "1701",
             "requires": [
-                "scripts",
-                "systems"
+                "scripts/steps",
+                "scripts/utils",
+                "systems/fbank_nnet",
+                "systems/graph"
             ],
             "inputs": [
                 "resample",
@@ -57,7 +59,8 @@
             "name": "capgen",
             "version": "1.0",
             "requires": [
-                "neuraltalk2"
+                "neuraltalk2",
+                "neuraltalk2/model/model_id1-501-1448236541.t7_cpu.t7"
             ],
             "inputs": [
                 "raw"
