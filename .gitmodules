@@ -1,3 +1,6 @@
 [submodule "neuraltalk2"]
 	path = modules/capgen-1.0/neuraltalk2
 	url = https://github.com/nguyenhuyanhh/neuraltalk2.git
+[submodule "lvcsr"]
+	path = modules/lvcsr-1701/scripts
+	url = https://github.com/nguyenhuyanhh/lvcsr.git
