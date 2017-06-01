@@ -44,151 +44,194 @@ LOG.setLevel(logging.DEBUG)
 def seg_to_dict(diarize_file, temp_dir):
     """Parse segment file to python-friendly structure."""
     diarize_dict = dict()
-    with open(diarize_file, 'r') as file_:
-        segs = [seg.strip().split() for seg in file_.readlines()
-                if not seg.startswith(';')]
-        for seg in segs:
-            speaker_gender = seg[7] + '-' + seg[4]
-            start_time = Decimal(seg[2]) / 100
-            end_time = (Decimal(seg[2]) + Decimal(seg[3])) / 100
-            diarize_dict[int(seg[2])] = (
-                speaker_gender, str(start_time), str(end_time))
+
+    # complete check using temp file
+    # if completed, deserialize to diarize_dict; else start process
     temp_seg_to_dict = os.path.join(temp_dir, 'seg_to_dict.json')
-    with open(temp_seg_to_dict, 'w') as file_out:
-        json.dump(diarize_dict, file_out, sort_keys=True, indent=4)
-    LOG.debug('seg_to_dict operation completed')
+    if os.path.exists(temp_seg_to_dict):
+        with open(temp_seg_to_dict, 'r') as file_:
+            tmp = json.load(file_)
+            diarize_dict = {int(k): v for k, v in tmp.items()}
+        LOG.debug('seg_to_dict operation previously completed')
+    else:
+        with open(diarize_file, 'r') as file_:
+            segs = [seg.strip().split() for seg in file_.readlines()
+                    if not seg.startswith(';')]
+            for seg in segs:
+                speaker_gender = seg[7] + '-' + seg[4]
+                start_time = Decimal(seg[2]) / 100
+                end_time = (Decimal(seg[2]) + Decimal(seg[3])) / 100
+                diarize_dict[int(seg[2])] = [speaker_gender,
+                                             str(start_time), str(end_time)]
+        with open(temp_seg_to_dict, 'w') as file_out:
+            json.dump(diarize_dict, file_out, sort_keys=True, indent=4)
+        LOG.debug('seg_to_dict operation completed')
     return diarize_dict
 
 
 def dict_to_wav(diarize_dict, resample_file, temp_dir):
     """Split resampled wav file into segments based on seg_to_dict."""
-    count = 1
-    sorted_keys = sorted([x for x in diarize_dict.keys()])
-    for key in sorted_keys:
-        value = diarize_dict[key]
-        diar_part_filename = '{}-{}.wav'.format(count, value[0])
-        diar_part_path = os.path.join(temp_dir, diar_part_filename)
-        tfm = Transformer()
-        tfm.trim(Decimal(value[1]), Decimal(value[2]))
-        tfm.build(resample_file, diar_part_path)
-        diarize_dict[key] = (
-            value[0], value[1], value[2], diar_part_path)
-        count += 1
+    # complete check using temp file
+    # if completed, deserialize to diarize_dict; else start process
     temp_dict_to_wav = os.path.join(temp_dir, 'dict_to_wav.json')
-    with open(temp_dict_to_wav, 'w') as file_out:
-        json.dump(diarize_dict, file_out, sort_keys=True, indent=4)
-    LOG.debug('dict_to_wav operation completed')
-    return diarize_dict
-
-
-def wav_to_trans(diarize_dict, speech, temp_dir, google_file):
-    """Transcribe segment by segment, then write transcript to text."""
-    sorted_keys = sorted([x for x in diarize_dict.keys()])
-    for key in sorted_keys:
-        value = diarize_dict[key]
-        diar_part_path = value[3]
-        with open(diar_part_path, 'rb') as file_:
-            content = b64encode(file_.read()).decode('utf-8')
-        request_body = {
-            "audio": {
-                "content": content
-            },
-            "config": {
-                "languageCode": "en-US",
-                "encoding": "LINEAR16",
-                "sampleRate": 16000
-            },
-        }
-        # exponential backoff in case it fails
-        attempt = 1
-        while attempt <= 5:
-            try:
-                sync_response = speech.syncrecognize(
-                    body=request_body).execute()
-                break
-            except:
-                sleep(2**attempt + randint(0, 1000) / 1000)
-                LOG.debug('Retrying transcription for key %s', key)
-                attempt += 1
-        if attempt == 6:
-            new_value = (value[0], value[1], value[2], '<unk>')
-            LOG.debug('Failed transcription for key %s', key)
-        elif 'results' not in sync_response.keys():
-            new_value = (value[0], value[1], value[2], '<unk>')
-            LOG.debug('Empty transcription for key %s', key)
-        else:
-            result_list = sync_response['results']
-            trans_list = list()
-            for item in result_list:
-                trans = item['alternatives'][0]['transcript'].strip()
-                if len(trans) == 0:
-                    trans = '<unk>'
-                trans_list.append(trans)
-            result_str = ' '.join(trans_list)
-            new_value = (value[0], value[1], value[2],
-                         result_str.encode('utf-8'))
-            LOG.debug('Transcription acquired for key %s', key)
-        diarize_dict[key] = new_value
-    temp_wav_to_trans = os.path.join(temp_dir, 'wav_to_trans.json')
-    with open(temp_wav_to_trans, 'w') as file_out:
-        json.dump(diarize_dict, file_out, sort_keys=True, indent=4)
-    LOG.debug('wav_to_trans operation completed')
-
-    # write text file
-    with open(google_file, 'w') as file_out:
+    if os.path.exists(temp_dict_to_wav):
+        with open(temp_dict_to_wav, 'r') as file_:
+            tmp = json.load(file_)
+            diarize_dict = {int(k): v for k, v in tmp.items()}
+        LOG.debug('dict_to_wav operation previously completed')
+    else:
+        count = 1
+        sorted_keys = sorted([x for x in diarize_dict.keys()])
         for key in sorted_keys:
             value = diarize_dict[key]
-            file_out.write(value[3].encode('utf-8') + '\n')
-    LOG.debug('Written %s', google_file)
+            diar_part_filename = '{}-{}.wav'.format(count, value[0])
+            diar_part_path = os.path.join(temp_dir, diar_part_filename)
+            tfm = Transformer()
+            tfm.trim(Decimal(value[1]), Decimal(value[2]))
+            tfm.build(resample_file, diar_part_path)
+            diarize_dict[key] = value + [diar_part_path]
+            count += 1
+        with open(temp_dict_to_wav, 'w') as file_out:
+            json.dump(diarize_dict, file_out, sort_keys=True, indent=4)
+        LOG.debug('dict_to_wav operation completed')
     return diarize_dict
 
 
-def trans_to_tg(diarize_dict, resample_file, temp_dir, google_textgrid):
-    """Produce TextGrid with speaker ids."""
-    textgrid_dict = dict()
-    for key in sorted(diarize_dict.keys()):
-        value = diarize_dict[key]
-        spk_id = value[0]
-        if spk_id not in textgrid_dict.keys():
-            textgrid_dict[spk_id] = [(value[1], value[2], value[3])]
-        else:
-            textgrid_dict[spk_id].append((value[1], value[2], value[3]))
-    temp_trans_to_tg = os.path.join(temp_dir, 'trans_to_tg.json')
-    with open(temp_trans_to_tg, 'w') as file_out:
-        json.dump(textgrid_dict, file_out, sort_keys=True, indent=4)
-    LOG.debug('trans_to_tg operation completed')
-    # write textgrid
-    tab4 = ' ' * 4
-    tab8 = ' ' * 8
-    tab12 = ' ' * 12
-    file_ = wave.open(resample_file, 'r')
-    duration = Decimal(file_.getnframes() / file_.getframerate())
-    file_.close()
-    with open(google_textgrid, 'w') as file_out:
-        file_out.write('File type = "ooTextFile"\n')
-        file_out.write('Object class = "TextGrid"\n\n')
-        file_out.write('xmin = 0.0\n')
-        file_out.write('xmax = {}\n'.format(duration))
-        file_out.write('tiers? <exists>\n')
-        file_out.write('size = {}\n'.format(len(textgrid_dict)))
-        file_out.write('item []:\n')
-        spk_count = 1
-        for spk_id, segs in textgrid_dict.items():
-            file_out.write(tab4 + 'item [{}]:\n'.format(spk_count))
-            file_out.write(tab8 + 'class = "IntervalTier"\n')
-            file_out.write(tab8 + 'name = "{}"\n'.format(spk_id))
-            file_out.write(tab8 + 'xmin = {}\n'.format(segs[0][0]))
-            file_out.write(tab8 + 'xmax = {}\n'.format(segs[-1][1]))
-            file_out.write(tab8 + 'intervals: size = {}\n'.format(len(segs)))
-            spk_count += 1
-            seg_count = 1
-            for seg in segs:
-                file_out.write(tab8 + 'intervals [{}]:\n'.format(seg_count))
-                file_out.write(tab12 + 'xmin = {}\n'.format(seg[0]))
-                file_out.write(tab12 + 'xmax = {}\n'.format(seg[1]))
-                file_out.write(tab12 + 'text = "{}"\n'.format(seg[2]))
-                seg_count += 1
-    LOG.debug('Written %s', google_textgrid)
+def wav_to_trans(diarize_dict, speech, temp_dir):
+    """Transcribe segment by segment."""
+    # complete check using temp file
+    # if completed, deserialize to diarize_dict; else start process
+    temp_wav_to_trans = os.path.join(temp_dir, 'wav_to_trans.json')
+    if os.path.exists(temp_wav_to_trans):
+        with open(temp_wav_to_trans, 'r') as file_:
+            tmp = json.load(file_)
+            diarize_dict = {int(k): v for k, v in tmp.items()}
+        LOG.debug('wav_to_trans operation previously completed')
+    else:
+        sorted_keys = sorted([x for x in diarize_dict.keys()])
+        for key in sorted_keys:
+            value = diarize_dict[key]
+            tmp = os.path.join(temp_dir, str(key))
+
+            # complete check using temp file
+            if os.path.exists(tmp):
+                with open(tmp, 'r') as file_:
+                    diarize_dict[key] = value + [file_.read().strip()]
+                LOG.debug('Transcription previously acquired for key %s', key)
+            else:
+                with open(value[3], 'rb') as file_:
+                    content = b64encode(file_.read()).decode('utf-8')
+                request_body = {
+                    "audio": {
+                        "content": content
+                    },
+                    "config": {
+                        "languageCode": "en-US",
+                        "encoding": "LINEAR16",
+                        "sampleRate": 16000
+                    },
+                }
+
+                # exponential backoff in case it fails
+                attempt = 1
+                while attempt <= 5:
+                    try:
+                        res = speech.syncrecognize(body=request_body).execute()
+                        break
+                    except:
+                        sleep(2**attempt + randint(0, 1000) / 1000)
+                        LOG.debug('Retrying transcription for key %s', key)
+                        attempt += 1
+
+                with open(tmp, 'w') as file_:
+                    if attempt == 6:
+                        # fail all attempts
+                        new_value = value + ['<unk>']
+                        file_.write('<unk>')
+                        LOG.debug('Failed transcription for key %s', key)
+                    elif 'results' not in res.keys():
+                        # empty transcription
+                        new_value = value + ['<unk>']
+                        file_.write('<unk>')
+                        LOG.debug('Empty transcription for key %s', key)
+                    else:
+                        # get transcription
+                        result_list = [x['alternatives'][0]['transcript'].strip() for x in res[
+                            'results']]
+                        result_str = ' '.join(result_list)
+                        new_value = value + [result_str.encode('utf-8')]
+                        file_.write(result_str.encode('utf-8'))
+                        LOG.debug('Transcription acquired for key %s', key)
+                    diarize_dict[key] = new_value
+
+        with open(temp_wav_to_trans, 'w') as file_out:
+            json.dump(diarize_dict, file_out, sort_keys=True, indent=4)
+        LOG.debug('wav_to_trans operation completed')
+    return diarize_dict
+
+
+def trans_to_tg(diarize_dict, resample_file, temp_dir, google_file, google_textgrid):
+    """Produce text transcript and TextGrid with speaker ids."""
+    # complete check for google_file
+    if os.path.exists(google_file):
+        LOG.debug('Previously written %s', google_file)
+    else:
+        with open(google_file, 'w') as file_out:
+            for key in sorted(diarize_dict):
+                file_out.write(diarize_dict[key][4].encode('utf-8') + '\n')
+        LOG.debug('Written %s', google_file)
+
+    # complete check for google_textgrid
+    if os.path.exists(google_textgrid):
+        LOG.debug('Previously written %s', google_textgrid)
+    else:
+        textgrid_dict = dict()
+        for key in sorted(diarize_dict.keys()):
+            value = diarize_dict[key]
+            spk_id = value[0]
+            if spk_id not in textgrid_dict.keys():
+                textgrid_dict[spk_id] = [(value[1], value[2], value[4])]
+            else:
+                textgrid_dict[spk_id].append((value[1], value[2], value[4]))
+        temp_trans_to_tg = os.path.join(temp_dir, 'trans_to_tg.json')
+        with open(temp_trans_to_tg, 'w') as file_out:
+            json.dump(textgrid_dict, file_out, sort_keys=True, indent=4)
+        LOG.debug('trans_to_tg operation completed')
+
+        # write textgrid
+        tab4 = ' ' * 4
+        tab8 = ' ' * 8
+        tab12 = ' ' * 12
+        file_ = wave.open(resample_file, 'r')
+        duration = Decimal(file_.getnframes() / file_.getframerate())
+        file_.close()
+        with open(google_textgrid, 'w') as file_out:
+            file_out.write('File type = "ooTextFile"\n')
+            file_out.write('Object class = "TextGrid"\n\n')
+            file_out.write('xmin = 0.0\n')
+            file_out.write('xmax = {}\n'.format(duration))
+            file_out.write('tiers? <exists>\n')
+            file_out.write('size = {}\n'.format(len(textgrid_dict)))
+            file_out.write('item []:\n')
+            spk_count = 1
+            for spk_id, segs in textgrid_dict.items():
+                file_out.write(tab4 + 'item [{}]:\n'.format(spk_count))
+                file_out.write(tab8 + 'class = "IntervalTier"\n')
+                file_out.write(tab8 + 'name = "{}"\n'.format(spk_id))
+                file_out.write(tab8 + 'xmin = {}\n'.format(segs[0][0]))
+                file_out.write(tab8 + 'xmax = {}\n'.format(segs[-1][1]))
+                file_out.write(
+                    tab8 + 'intervals: size = {}\n'.format(len(segs)))
+                spk_count += 1
+                seg_count = 1
+                for seg in segs:
+                    file_out.write(
+                        tab8 + 'intervals [{}]:\n'.format(seg_count))
+                    file_out.write(tab12 + 'xmin = {}\n'.format(seg[0]))
+                    file_out.write(tab12 + 'xmax = {}\n'.format(seg[1]))
+                    file_out.write(tab12 + 'text = "{}"\n'.format(seg[2]))
+                    seg_count += 1
+        LOG.debug('Written %s', google_textgrid)
 
 
 def google(file_id):
@@ -207,6 +250,7 @@ def google(file_id):
     if not os.path.exists(temp_dir):
         os.makedirs(temp_dir)
 
+    # complete check
     if os.path.exists(google_file) and os.path.exists(google_textgrid):
         LOG.debug('Previously transcribed %s, %s',
                   google_file, google_textgrid)
@@ -223,9 +267,9 @@ def google(file_id):
         # operations
         diarize_dict = seg_to_dict(diarize_file, temp_dir)
         diarize_dict = dict_to_wav(diarize_dict, resample_file, temp_dir)
-        diarize_dict = wav_to_trans(
-            diarize_dict, speech, temp_dir, google_file)
-        trans_to_tg(diarize_dict, resample_file, temp_dir, google_textgrid)
+        diarize_dict = wav_to_trans(diarize_dict, speech, temp_dir)
+        trans_to_tg(diarize_dict, resample_file, temp_dir,
+                    google_file, google_textgrid)
 
 if __name__ == '__main__':
     google(sys.argv[1])
