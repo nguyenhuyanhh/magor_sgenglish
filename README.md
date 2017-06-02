@@ -96,7 +96,8 @@ The modules included within this repository are:
 
 | Module | Version | `module-id` | Author/ Contributor | Requirements/ Setup
 | --- | --- | --- | --- | ---
-| `resample` | 1.0 | `resample-1.0` | Nguyen Huy Anh | `ffmpeg` and `sox` installed, via `$ sudo apt-get install ffmpeg sox libsox-fmt-all`
+| `resample` | 1.0 | `resample-1.0` | Nguyen Huy Anh | `ffmpeg` installed, via `$ sudo apt-get install ffmpeg`
+| `convert` | 1.0 | `convert-1.0` | Nguyen Huy Anh | `ffmpeg` installed, via `$ sudo apt-get install ffmpeg`
 | `diarize` | 8.4.1 | `diarize-8.4.1` | Nguyen Huy Anh | Java 7 (at least) installed. Recommended to install [JDK 7/8](http://www.webupd8.org/2012/09/install-oracle-java-8-in-ubuntu-via-ppa.html)
 | `google` | 1beta1 | `google-1beta1` | Nguyen Huy Anh | A valid Google Service Account Key as `google*/key.json`. [How to acquire key](https://support.google.com/googleapi/answer/6158849)
 | `lvcsr` | 1701 | `lvcsr-1701` | Xu Haihua/ Nguyen Huy Anh | <ol><li>Install [Kaldi](https://github.com/kaldi-asr/kaldi) with `sequitur` (included in `/tools` after successful installation)</li><li>Include `$KALDI_ROOT` as an environment variable in `~/.bashrc`</li><li>Acquire the models and put into `/lvcsr*/systems` (The Singapore-English LVCSR models by Xu Haihua is the property of [Speech and Language Technology Program, School of Computer Science and Engineering, NTU](http://www.ntu.edu.sg/home/aseschng/SpeechTechWeb/About_Us/about_us.html))</li></ol>
@@ -115,6 +116,7 @@ data/
     file-id-1/
         raw/            # raw file (.mp3, .mp4, .wav)
         resample/       # output of module resample: resampled file (.wav)
+        convert/        # output of module convert: converted video file (.mp4)
         diarization/    # output of module diarize: diarization file (.seg)
         transcript/
             google/     # output of module google: Google transcript (.txt, .TextGrid)

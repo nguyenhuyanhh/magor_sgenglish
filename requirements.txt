@@ -2,7 +2,6 @@
 python-slugify
 
 # Resample
-sox
 ffmpy
 
 # Google
