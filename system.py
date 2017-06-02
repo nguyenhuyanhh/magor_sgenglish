@@ -165,8 +165,12 @@ if __name__ == '__main__':
     ARG_PARSER = argparse.ArgumentParser()
     ARG_PARSER.add_argument('-p', '--procedures', metavar='procedure_id',
                             help='procedures to pass to workflow', nargs='*')
+    ARG_PARSER.add_argument(
+        '-t', '--test', action='store_true', help='just do system checks and exit')
     ARGS = ARG_PARSER.parse_args()
-    if ARGS.procedures is None:
+    if ARGS.test:
+        manifest_check()
+    elif ARGS.procedures is None:
         workflow(['google', 'lvcsr'])
     else:
         workflow(ARGS.procedures)
