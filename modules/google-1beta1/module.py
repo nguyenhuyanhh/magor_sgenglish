@@ -18,15 +18,15 @@ from decimal import Decimal
 from random import randint
 from time import sleep
 
+from ffmpy import FFmpeg
 from googleapiclient.discovery import build
 from oauth2client.service_account import ServiceAccountCredentials
-from sox import Transformer
 
 CUR_DIR = os.path.dirname(os.path.realpath(__file__))
 ROOT_DIR = os.path.dirname(os.path.dirname(CUR_DIR))
 DATA_DIR = os.path.join(ROOT_DIR, 'data/')
 
-logging.getLogger().disabled = True
+# silent google loggers
 logging.getLogger('oauth2client').setLevel(logging.ERROR)
 logging.getLogger('googleapiclient').setLevel(logging.ERROR)
 
@@ -84,12 +84,16 @@ def dict_to_wav(diarize_dict, resample_file, temp_dir):
         sorted_keys = sorted([x for x in diarize_dict.keys()])
         for key in sorted_keys:
             value = diarize_dict[key]
-            diar_part_filename = '{}-{}.wav'.format(count, value[0])
-            diar_part_path = os.path.join(temp_dir, diar_part_filename)
-            tfm = Transformer()
-            tfm.trim(Decimal(value[1]), Decimal(value[2]))
-            tfm.build(resample_file, diar_part_path)
-            diarize_dict[key] = value + [diar_part_path]
+            diar_part_file = os.path.join(
+                temp_dir, '{}-{}.wav'.format(count, value[0]))
+            part_dur = Decimal(value[2]) - Decimal(value[1])
+            inputs = {
+                resample_file: '-ss {} -t {}'.format(value[1], str(part_dur))}
+            outputs = {diar_part_file: None}
+            fnull = open(os.devnull, 'w')
+            FFmpeg(inputs=inputs, outputs=outputs).run(
+                stdout=fnull, stderr=fnull)
+            diarize_dict[key] = value + [diar_part_file]
             count += 1
         with open(temp_dict_to_wav, 'w') as file_out:
             json.dump(diarize_dict, file_out, sort_keys=True, indent=4)
