@@ -12,16 +12,11 @@ import logging
 import os
 import sys
 
-from sox import Transformer
 from ffmpy import FFmpeg
 
 CUR_DIR = os.path.dirname(os.path.realpath(__file__))
 ROOT_DIR = os.path.dirname(os.path.dirname(CUR_DIR))
 DATA_DIR = os.path.join(ROOT_DIR, 'data/')
-AUDIO_EXTS = ['.wav', '.mp3']
-VIDEO_EXTS = ['.mp4']
-
-logging.getLogger().disabled = True  # disable logging for sox
 
 MODULE_NAME = 'resample'
 LOG_H = logging.StreamHandler()
@@ -49,21 +44,13 @@ def resample(file_id):
     else:
         if not os.path.exists(resample_dir):
             os.makedirs(resample_dir)
-        if os.path.splitext(file_in)[1] in AUDIO_EXTS:
-            LOG.debug('Audio file, resampling using sox')
-            tfm = Transformer()
-            tfm.convert(samplerate=16000, n_channels=1, bitdepth=16)
-            tfm.build(file_in, audio_out)
-            LOG.debug('Resampled %s to %s', file_in, audio_out)
-        elif os.path.splitext(file_in)[1] in VIDEO_EXTS:
-            LOG.debug('Video file, resampling using ffmpeg')
-            inputs = {file_in: None}
-            outputs = {audio_out: '-ac 1 -ar 16000 -sample_fmt s16'}
-            ffmp = FFmpeg(inputs=inputs, outputs=outputs)
-            LOG.debug('Command: %s', ffmp.cmd)
-            fnull = open(os.devnull, 'w')
-            ffmp.run(stdout=fnull, stderr=fnull)  # silent output
-            LOG.debug('Resampled %s to %s', file_in, audio_out)
+        inputs = {file_in: None}
+        outputs = {audio_out: '-ac 1 -ar 16000 -sample_fmt s16'}
+        ffmp = FFmpeg(inputs=inputs, outputs=outputs)
+        LOG.debug('Resampling command: %s', ffmp.cmd)
+        fnull = open(os.devnull, 'w')
+        ffmp.run(stdout=fnull, stderr=fnull)  # silent output
+        LOG.debug('Resampled %s to %s', file_in, audio_out)
 
 if __name__ == '__main__':
     resample(sys.argv[1])
