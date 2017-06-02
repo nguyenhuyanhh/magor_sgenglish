@@ -11,6 +11,17 @@
                 "resample"
             ]
         },
+        "convert-1.0": {
+            "name": "convert",
+            "version": "1.0",
+            "requires": [],
+            "inputs": [
+                "raw"
+            ],
+            "outputs": [
+                "convert"
+            ]
+        },
         "diarize-8.4.1": {
             "name": "diarize",
             "version": "8.4.1",
@@ -63,7 +74,7 @@
                 "neuraltalk2/model/model_id1-501-1448236541.t7_cpu.t7"
             ],
             "inputs": [
-                "raw"
+                "convert"
             ],
             "outputs": [
                 "keyframes"
@@ -82,6 +93,7 @@
             "lvcsr-1701"
         ],
         "capgen": [
+            "convert-1.0",
             "capgen-1.0"
         ]
     },

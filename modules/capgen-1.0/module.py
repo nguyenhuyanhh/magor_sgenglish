@@ -138,18 +138,17 @@ def capgen(file_id):
     """Generate caption for file_id."""
     # init paths
     working_dir = os.path.join(DATA_DIR, file_id)
-    raw_dir = os.path.join(working_dir, 'raw/')
-    raw_file = os.path.join(raw_dir, os.listdir(raw_dir)[0])
+    convert_dir = os.path.join(working_dir, 'convert/')
+    convert_file = os.path.join(convert_dir, '{}.mp4'.format(file_id))
     capgen_dir = os.path.join(working_dir, 'keyframes/')
     if not os.path.exists(capgen_dir):
         os.makedirs(capgen_dir)
     neuraltalk_dir = os.path.join(CUR_DIR, 'neuraltalk2')
 
     # generate caption
-    if os.path.splitext(raw_file)[1] == '.mp4':
-        t_arr = extract(raw_file)
-        frames = get_middle(raw_file, t_arr, capgen_dir)
-        predict(file_id, frames, neuraltalk_dir, capgen_dir)
+    t_arr = extract(convert_file)
+    frames = get_middle(convert_file, t_arr, capgen_dir)
+    predict(file_id, frames, neuraltalk_dir, capgen_dir)
 
 if __name__ == '__main__':
     capgen(sys.argv[1])
