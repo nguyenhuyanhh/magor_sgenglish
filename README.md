@@ -21,9 +21,22 @@ The system was developed using Python 2.7.12 on Lubuntu 16.04.1.
 1. Install python dependencies: `$ sudo pip install -r requirements.txt`
 1. Setup the individual module dependencies as prescribed in [Modules](#modules-and-procedures)
 1. Crawl (put) files into `/crawl`
-1. Run the system: `$ python system.py` or `$ python system.py -p [list of procedures separated by space]` (see `$ python system.py --help`)
+1. Run the system: `$ python system.py [options]` (for a list of options, see `$ python system.py -h` or consult [Command-line interface](#command-line-interface) section below).
 
 ## Documentation
+
+### Command-line interface
+
+```
+$ python system.py -h
+usage: system.py [-h] [-p [procedure_id [procedure_id ...]]] [-t]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -p [procedure_id [procedure_id ...]], --procedures [procedure_id [procedure_id ...]]
+                        procedures to pass to workflow
+  -t, --test            just do system checks and exit
+```
 
 ### Overall repository structure
 
