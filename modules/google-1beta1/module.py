@@ -8,27 +8,26 @@ Requires: key.json
 Transcribe a file_id into /transcript/google
 """
 
+import io
 import json
 import logging
 import os
 import sys
 import wave
-from base64 import b64encode
 from decimal import Decimal
 from random import randint
 from time import sleep
 
 from ffmpy import FFmpeg
-from googleapiclient.discovery import build
-from oauth2client.service_account import ServiceAccountCredentials
+from google.cloud import speech
+from google.cloud.speech import enums, types
 
 CUR_DIR = os.path.dirname(os.path.realpath(__file__))
 ROOT_DIR = os.path.dirname(os.path.dirname(CUR_DIR))
 DATA_DIR = os.path.join(ROOT_DIR, 'data/')
 
 # silent google loggers
-logging.getLogger('oauth2client').setLevel(logging.ERROR)
-logging.getLogger('googleapiclient').setLevel(logging.ERROR)
+logging.getLogger('google.auth').setLevel(logging.ERROR)
 
 MODULE_NAME = 'google'
 LOG_H = logging.StreamHandler()
@@ -101,7 +100,7 @@ def dict_to_wav(diarize_dict, resample_file, temp_dir):
     return diarize_dict
 
 
-def wav_to_trans(diarize_dict, speech, temp_dir):
+def wav_to_trans(diarize_dict, speech_client, temp_dir):
     """Transcribe segment by segment."""
     # complete check using temp file
     # if completed, deserialize to diarize_dict; else start process
@@ -123,50 +122,47 @@ def wav_to_trans(diarize_dict, speech, temp_dir):
                     diarize_dict[key] = value + [file_.read().strip()]
                 LOG.debug('Transcription previously acquired for key %s', key)
             else:
-                with open(value[3], 'rb') as file_:
-                    content = b64encode(file_.read()).decode('utf-8')
-                request_body = {
-                    "audio": {
-                        "content": content
-                    },
-                    "config": {
-                        "languageCode": "en-US",
-                        "encoding": "LINEAR16",
-                        "sampleRate": 16000
-                    },
-                }
+                with io.open(value[3], 'rb') as file_:
+                    content = file_.read()
+                audio = types.RecognitionAudio(content=content)
+                config = types.RecognitionConfig(
+                    encoding=enums.RecognitionConfig.AudioEncoding.LINEAR16,
+                    sample_rate_hertz=16000,
+                    language_code='en-US')
 
                 # exponential backoff in case it fails
                 attempt = 1
                 while attempt <= 5:
                     try:
-                        res = speech.syncrecognize(body=request_body).execute()
+                        res = speech_client.recognize(config, audio)
                         break
-                    except:
+                    except BaseException:
                         sleep(2**attempt + randint(0, 1000) / 1000)
                         LOG.debug('Retrying transcription for key %s', key)
                         attempt += 1
 
+                # process and write results
+                if attempt == 6:
+                    # fail all attempts
+                    new_value = value + ['<unk>']
+                    trans = '<unk>'
+                    LOG.debug('Failed transcription for key %s', key)
+                elif not res.results:
+                    # empty transcription
+                    new_value = value + ['<unk>']
+                    trans = '<unk>'
+                    LOG.debug('Empty transcription for key %s', key)
+                else:
+                    # get transcription
+                    result_list = [x.alternatives[0].transcript.strip()
+                                   for x in res.results]
+                    result_str = ' '.join(result_list)
+                    new_value = value + [result_str.encode('utf-8')]
+                    trans = result_str.encode('utf-8')
+                    LOG.debug('Transcription acquired for key %s', key)
+                diarize_dict[key] = new_value
                 with open(tmp, 'w') as file_:
-                    if attempt == 6:
-                        # fail all attempts
-                        new_value = value + ['<unk>']
-                        file_.write('<unk>')
-                        LOG.debug('Failed transcription for key %s', key)
-                    elif 'results' not in res.keys():
-                        # empty transcription
-                        new_value = value + ['<unk>']
-                        file_.write('<unk>')
-                        LOG.debug('Empty transcription for key %s', key)
-                    else:
-                        # get transcription
-                        result_list = [x['alternatives'][0]['transcript'].strip() for x in res[
-                            'results']]
-                        result_str = ' '.join(result_list)
-                        new_value = value + [result_str.encode('utf-8')]
-                        file_.write(result_str.encode('utf-8'))
-                        LOG.debug('Transcription acquired for key %s', key)
-                    diarize_dict[key] = new_value
+                    file_.write(trans)
 
         with open(temp_wav_to_trans, 'w') as file_out:
             json.dump(diarize_dict, file_out, sort_keys=True, indent=4)
@@ -264,16 +260,16 @@ def google(file_id):
 
         # init google api
         json_key = os.path.join(CUR_DIR, 'key.json')
-        credentials = ServiceAccountCredentials.from_json_keyfile_name(
-            json_key, scopes=['https://www.googleapis.com/auth/cloud-platform'])
-        speech = build('speech', 'v1beta1', credentials=credentials).speech()
+        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = json_key
+        client = speech.SpeechClient()
 
         # operations
         diarize_dict = seg_to_dict(diarize_file, temp_dir)
         diarize_dict = dict_to_wav(diarize_dict, resample_file, temp_dir)
-        diarize_dict = wav_to_trans(diarize_dict, speech, temp_dir)
+        diarize_dict = wav_to_trans(diarize_dict, client, temp_dir)
         trans_to_tg(diarize_dict, resample_file, temp_dir,
                     google_file, google_textgrid)
+
 
 if __name__ == '__main__':
     google(sys.argv[1])

@@ -5,4 +5,4 @@ python-slugify
 ffmpy
 
 # Google
-google-api-python-client
+google-cloud-speech==0.27.0

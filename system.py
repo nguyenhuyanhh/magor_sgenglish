@@ -83,7 +83,7 @@ def manifest_check():
     LOG.info('Valid procedures: %s ', ', '.join(PROCEDURES.keys()))
 
 
-class Process():
+class Process(object):
     """
     Processing tasks.
     Syntax: Process(filename, procedure_id)
@@ -134,7 +134,7 @@ class Process():
             exec_ = os.path.join(MODULES_DIR, module_id, 'module.py')
             args = ['python', exec_, self.file_id]
             subprocess.call(args)
-        except:
+        except BaseException:
             LOG.info('Error occured.', exc_info=True)
 
     def pipeline(self):
@@ -160,6 +160,7 @@ def workflow(procedure_list):
                 if procedure in PROCEDURES.keys():
                     Process(filename=filename,
                             procedure_id=procedure).pipeline()
+
 
 if __name__ == '__main__':
     ARG_PARSER = argparse.ArgumentParser()
