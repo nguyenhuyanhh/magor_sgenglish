@@ -1,6 +1,6 @@
 """
 Module: google
-Version: 1beta1
+Version: 1
 Author: Nguyen Huy Anh
 
 Requires: key.json
