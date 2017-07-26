@@ -11,9 +11,9 @@ The repository includes the core system, as well as a collection of reference mo
 This is the requisites for the core system only. For module-specific requirements, consult the [Modules](#modules-and-procedures) section below.
 
 1. Linux
-1. Python (either 2 or 3)
+1. Python 2
 
-The system was developed using Python 2.7.12 on Lubuntu 16.04.1.
+The system was developed using Python 2.7.12 on Lubuntu 16.04.2 LTS.
 
 ## Setup
 
