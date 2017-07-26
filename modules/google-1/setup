@@ -1,0 +1,5 @@
+#!/bin/sh
+# Setup script for google-1
+
+# Install/ upgrade python dependency
+pip2 install --user --upgrade google-cloud-speech==0.27.0
