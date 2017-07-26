@@ -1,0 +1,9 @@
+#!/bin/sh
+# Setup script for diarize-8.4.1
+
+# Check whether java > 1.7 is installed
+if ! command -v java >/dev/null 2>&1; then
+    sudo apt-get install openjdk-8-jre
+elif [ "$(java -version 2>&1 | grep -i version | cut -d'"' -f2)" \< "1.7" ]; then
+    sudo apt-get install openjdk-8-jre
+fi
