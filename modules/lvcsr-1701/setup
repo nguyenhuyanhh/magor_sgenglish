@@ -1,6 +1,7 @@
 #!/bin/bash
 # Setup script for lvcsr-1701
 
+CUR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 N_PROC=$(nproc --all)
 . $HOME/.bashrc
 
@@ -44,6 +45,7 @@ function install_kaldi {
     echo "export KALDI_ROOT=$HOME/kaldi" >> $HOME/.bashrc
     KALDI_ROOT=$HOME/kaldi
     export KALDI_ROOT=$HOME/kaldi
+    echo "Kaldi successfully installed"
 }
 
 # Sequitur installation
@@ -56,13 +58,32 @@ function install_sequitur {
         sudo apt-get install python-pip swig
         pip2 install --user --upgrade numpy
         extras/install_sequitur.sh || { echo "installation failed for sequitur"; exit 1; }
+        echo "Sequitur successfully installed"
     fi
 }
 
 # Check for kaldi installation using env
 if [ -z "$KALDI_ROOT" ]; then
     install_kaldi || exit 1
+else
+    echo "Kaldi already installed"
 fi
 
 # Install sequitur
 install_sequitur
+
+# Install LVCSR systems
+# (C) Xu Haihua, NTU
+cd $CUR_DIR
+if [ ! -d systems ]; then
+    if [ ! -f $HOME/systems.tar.gz ]; then
+        echo "Getting LVCSR system from NTU cluster (155.69.146.215)..."
+        read -p "Username: " username
+        scp $username@155.69.146.215:/home/nhanh/work/downloads/systems.tar.gz $HOME/systems.tar.gz || { echo "failed when downloading system"; exit 1; }
+    fi
+    tar -xvf $HOME/systems.tar.gz || { echo "failed when extracting system"; exit 1; }
+    rm $HOME/systems.tar.gz
+    echo "LVCSR system successfully installed"
+else
+    echo "LVCSR system already installed"
+fi
