@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Setup script for lvcsr-1701
 
 N_PROC=$(nproc --all)
@@ -21,7 +21,17 @@ function install_kaldi {
 
     # tools
     cd tools
-    extras/check_dependencies.sh
+    no_deps=0
+    # check dependencies, parse the results to install deps
+    sudo apt-get install g++
+    while [ $no_deps -eq 0 ]; do
+        deps=$(extras/check_dependencies.sh | grep 'sudo apt-get install' | cut -d' ' -f5- | xargs) || exit 1
+        if [ -z "$deps" ]; then
+            no_deps=1
+        else
+            sudo apt-get install $deps
+        fi
+    done
     make -j $N_PROC || { echo "make failed for tools"; exit 1; }
 
     # src
@@ -39,10 +49,13 @@ function install_kaldi {
 # Sequitur installation
 function install_sequitur {
     cd $KALDI_ROOT/tools
-    if [ -L ./sequitur ]; then
+    if [ -f env.sh ]; then
         echo "Sequitur already installed"
     else
-        extras/install_sequitur.sh
+        # install deps
+        sudo apt-get install python-pip swig
+        pip2 install --user --upgrade numpy
+        extras/install_sequitur.sh || { echo "installation failed for sequitur"; exit 1; }
     fi
 }
 
