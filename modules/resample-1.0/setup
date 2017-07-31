@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Setup script for resample-1.0
 
 # Check for ffmpeg installation

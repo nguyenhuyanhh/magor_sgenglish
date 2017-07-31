@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Setup script for diarize-8.4.1
 
 # Check whether java > 1.7 is installed
