@@ -1,0 +1,55 @@
+#!/bin/sh
+# Setup script for lvcsr-1701
+
+N_PROC=$(nproc --all)
+. $HOME/.bashrc
+
+# Kaldi installation
+function install_kaldi {
+    # clone repo in $HOME/kaldi
+    cd $HOME
+    if [ -d kaldi ]; then
+        cd kaldi
+        git fetch
+        git pull
+    else
+        git clone https://github.com/kaldi-asr/kaldi.git
+        cd kaldi
+    fi
+    # latest 'stable' release
+    git checkout 5.1 || { echo "git operations failed"; exit 1; }
+
+    # tools
+    cd tools
+    extras/check_dependencies.sh
+    make -j $N_PROC || { echo "make failed for tools"; exit 1; }
+
+    # src
+    cd ../src
+    ./configure --shared
+    make depend -j $N_PROC || { echo "make depend failed for src"; exit 1; }
+    make -j $N_PROC || { echo "make failed for src"; exit 1; }
+
+    # add to environment variable
+    echo "export KALDI_ROOT=$HOME/kaldi" >> $HOME/.bashrc
+    KALDI_ROOT=$HOME/kaldi
+    export KALDI_ROOT=$HOME/kaldi
+}
+
+# Sequitur installation
+function install_sequitur {
+    cd $KALDI_ROOT/tools
+    if [ -L ./sequitur ]; then
+        echo "Sequitur already installed"
+    else
+        extras/install_sequitur.sh
+    fi
+}
+
+# Check for kaldi installation using env
+if [ -z "$KALDI_ROOT" ]; then
+    install_kaldi || exit 1
+fi
+
+# Install sequitur
+install_sequitur
