@@ -1,0 +1,129 @@
+#!/bin/bash
+# Setup script for capgen-1.0
+
+CUR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+. $HOME/.bashrc
+
+function install_torch {
+    # clone repo in $HOME/torch
+    cd $HOME
+    if [ -d torch ]; then
+        cd torch
+        git fetch
+        git pull
+        git submodule update --recursive
+    else
+        git clone https://github.com/torch/distro.git $HOME/torch --recursive
+    fi
+
+    # install deps
+    cd $HOME/torch
+    bash install-deps
+
+    # install Torch
+    ./install.sh
+    . $HOME/.bashrc
+}
+
+function install_rocks {
+    # install the required rocks
+    cd $HOME
+    nn_ver=$(luarocks show nn | grep nn -m 1 | cut -d' ' -f2)
+    if [ -z $nn_ver ] || [ ! $nn_ver = scm-1 ]; then
+        luarocks install nn
+    else
+        echo "nn scm-1 already installed"
+    fi
+    nngraph_ver=$(luarocks show nngraph | grep nngraph -m 1 | cut -d' ' -f2)
+    if [ -z $nngraph_ver ] || [ ! $nngraph_ver = scm-1 ]; then
+        luarocks install nngraph
+    else
+        echo "nngraph scm-1 already installed"
+    fi
+    image_ver=$(luarocks show image | grep image -m 1 | cut -d' ' -f2)
+    if [ -z $image_ver ] || [ ! $image_ver = 1.1.alpha-0 ]; then
+        luarocks install image
+    else
+        echo "image 1.1.alpha-0 already installed"
+    fi
+    cjson_ver=$(luarocks show lua-cjson | grep lua-cjson -m 1 | cut -d' ' -f2)
+    if [ -z $cjson_ver ] || [ ! $cjson_ver = 2.1.0-1 ]; then
+        # install lua-cjson 2.1.0
+        if [ ! -f lua-cjson-2.1.0.tar.gz ]; then
+            wget https://www.kyne.com.au/~mark/software/download/lua-cjson-2.1.0.tar.gz
+        fi
+        tar -xvf lua-cjson-2.1.0.tar.gz || { echo "failed when extracting lua-cjson"; exit 1; }
+        cd lua-cjson-2.1.0
+        luarocks make
+        # cleanup
+        cd $HOME
+        if [ -d lua-cjson-2.1.0 ]; then
+            rm -rf lua-cjson-2.1.0
+        fi
+        if [ -f lua-cjson-2.1.0.tar.gz ]; then
+            rm lua-cjson-2.1.0.tar.gz
+        fi
+    else
+        echo "lua-cjson 2.1.0-1 already installed"
+    fi
+    echo "Required rocks installed"
+}
+
+# loadcaffe installation
+function install_loadcaffe {
+    # loadcaffe
+    loadcaffe_ver=$(luarocks show loadcaffe | grep loadcaffe -m 1 | cut -d' ' -f2)
+    if [ -z $loadcaffe_ver ] || [ ! $loadcaffe_ver = 1.0-0 ]; then
+        sudo apt-get install libprotobuf-dev protobuf-compiler
+        ubuntu_ver=$(lsb_release -r | cut -f2)
+        if [ $ubuntu_ver = 16.04 ]; then
+            CC=gcc-5 CXX=g++-5 luarocks install loadcaffe || { echo "failed while installing loadcaffe"; exit 1; }
+        else
+            luarocks install loadcaffe || { echo "failed while installing loadcaffe"; exit 1; }
+        fi
+    else
+        echo "loadcaffe already installed"
+    fi
+    # hdf5
+    torch_hdf5_ver=$(luarocks show hdf5 | grep hdf5 -m 1 | cut -d' ' -f2)
+    if [ -z $torch_hdf5_ver ] || [ ! $torch_hdf5_ver = 0-0 ]; then
+        sudo apt-get install python-h5py libhdf5-serial-dev hdf5-tools
+        cd $HOME
+        if [ -d torch-hdf5 ]; then
+            cd torch-hdf5
+            git fetch
+            git pull
+        else
+            git clone https://github.com/deepmind/torch-hdf5
+            cd torch-hdf5
+        fi
+        luarocks make hdf5-0-0.rockspec
+    else
+        echo "torch-hdf5 0-0 already installed"
+    fi
+}
+
+# Check for torch installation
+if command -v th >/dev/null 2>&1; then
+    echo "Torch already installed"
+else
+    install_torch
+fi
+
+# Install further reqs
+install_rocks
+install_loadcaffe
+
+# Download cpu checkpoints
+cd $CUR_DIR/neuraltalk2
+if [ ! -d model ]; then
+    mkdir model
+fi
+cd model
+if [ ! -f model_id1-501-1448236541.t7_cpu.t7 ]; then
+    if [ ! -f checkpoint_v1_cpu.zip ]; then
+        wget http://cs.stanford.edu/people/karpathy/neuraltalk2/checkpoint_v1_cpu.zip
+    fi
+    unzip checkpoint_v1_cpu.zip
+fi
+echo "CPU checkpoints downloaded"
