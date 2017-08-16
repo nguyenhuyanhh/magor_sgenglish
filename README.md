@@ -18,7 +18,7 @@ The system was developed using Python 2.7.12 on Lubuntu 16.04.2 LTS.
 ## Setup
 
 1. Clone this project: `$ git clone https://github.com/nguyenhuyanhh/magor_sgenglish.git --recursive`
-1. Install python dependencies: `$ sudo pip install -r requirements.txt`
+1. Install python dependencies: `$ pip install --user -r requirements.txt`
 1. Setup the individual module dependencies as prescribed in [Modules](#modules-and-procedures)
 1. Crawl (put) files into `/crawl`
 1. Run the system: `$ python system.py [options]` (for a list of options, see `$ python system.py -h` or consult [Command-line interface](#command-line-interface) section below).
@@ -46,6 +46,7 @@ Non-critical files are omitted for brevity.
 crawl/                  # raw files (from crawler or manual input)
 data/                   # main data 
 modules/                # modules
+utils/                  # utility scripts
 manifest.json           # system manifest
 system.py               # core system executable
 ```
@@ -56,16 +57,6 @@ An example would be the included `manifest.json`.
 
 ```json
 {
-    "modules":{
-        "module-id-1":{
-            "name":"",
-            "version":"",
-            "requires":[],
-            "inputs":[],
-            "outputs":[]
-        },
-        "module-id-2":{}
-    },
     "procedures":{
         "procedure-id-1":[
             "raw*",
@@ -80,7 +71,9 @@ An example would be the included `manifest.json`.
             ".mp3",
             ".wav"
         ],
-        "video":[]
+        "video":[
+            ".mp4"
+        ]
     }
 }
 ```
@@ -88,22 +81,60 @@ An example would be the included `manifest.json`.
 Field types and value constraints:
 
 | Field | Type | Constraint
-| --- | --- | --- 
-| `module-id` | `str` | Must be the name of a subfolder under `/modules`
-| -- `name` | `str` | 
-| -- `version` | `str` |
-| -- `requires` | `list(str)` | Module dependencies (required paths under `/modules/module-id`)
-| -- `inputs` | `list(str)` | Module inputs (subfolders under `/data/file-id`)
-| -- `outputs` | `list(str)` | Module outputs (subfolders under `/data/file-id`)
+| --- | --- | ---
 | `procedure-id` | `list(str)` | List of modules in the procedure
-| `audio` | `list(str)` | List of accepted audio extensions
-| `video` | `list(str)` | List of accepted video extensions
+| `audio` | `list(str)` | List of accepted audio extensions (must have ".")
+| `video` | `list(str)` | List of accepted video extensions (must have ".")
 
 The method `manifest_check()` called at system start-up would check the manifest for consistency with the actual system, and disable violating modules/ procedures.
 
 ### Modules and procedures
 
-Each module in the system performs a function, which takes input files from certain subfolders under `data/file-id` and produce output files in other subfolders under `data/file-id`, as specified in the [manifest file](#manifest-file-structure). Modules could be pipelined into procedures, if their input and output requirements are linked.
+Each module in the system performs a function, which takes input files from certain subfolders under `data/file-id` and produce output files in other subfolders under `data/file-id`. Modules could be pipelined into procedures, if their input and output requirements are linked.
+
+#### Module file structure
+
+```
+modules/
+    module-id-1/
+        manifest.json       # module manifest
+        setup               # setup script (`#!/bin/bash` is recommended)
+        module.py           # core module executable
+        [optional executables and data files]
+    module-id-2/
+        ...
+    ...
+```
+
+#### Module manifest file structure
+
+This is an example manifest file for module `resample-1.0`.
+
+```json
+{
+    "name": "resample",
+    "version": "1.0",
+    "requires": [],
+    "inputs": [
+        "raw"
+    ],
+    "outputs": [
+        "resample"
+    ]
+}
+```
+
+Field types and value constraints:
+
+| Field | Type | Constraint
+| --- | --- | --- 
+| `name` | `str` | 
+| `version` | `str` |
+| `requires` | `list(str)` | Module dependencies (required paths under `/modules/module-id`)
+| `inputs` | `list(str)` | Module inputs (subfolders under `/data/file-id`)
+| `outputs` | `list(str)` | Module outputs (subfolders under `/data/file-id`)
+
+#### Included modules and procedures
 
 The modules included within this repository are:
 
@@ -116,7 +147,7 @@ The modules included within this repository are:
 | `lvcsr` | 1701 | `lvcsr-1701` | Xu Haihua/ Nguyen Huy Anh | <ol><li>Install [Kaldi](https://github.com/kaldi-asr/kaldi) with `sequitur` (included in `/tools` after successful installation)</li><li>Include `$KALDI_ROOT` as an environment variable in `~/.bashrc`</li><li>Acquire the models and put into `/lvcsr*/systems` (The Singapore-English LVCSR models by Xu Haihua is the property of [Speech and Language Technology Program, School of Computer Science and Engineering, NTU](http://www.ntu.edu.sg/home/aseschng/SpeechTechWeb/About_Us/about_us.html))</li></ol>
 | `capgen` | 1.0 | `capgen-1.0` | Peter/ Nguyen Huy Anh | Follow the instructions [here](https://github.com/karpathy/neuraltalk2). Also, put the cpu checkpoints in `capgen*/neuraltalk2/model/`
 
-Some of the setup procedures could be quite tedious; automatic installation/ configuration scripts would be included if there is time.
+Most of the setup procedures are automated into `setup` scripts.
 
 Three procedures are included with this repository: `google` to transcribe audios using Google Cloud Speech API, `lvcsr` to transcribe audios using in-house LVCSR system, and `capgen` to generate caption for keyframes in videos. 
 

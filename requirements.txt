@@ -1,8 +1,2 @@
 # System
 python-slugify
-
-# Resample
-ffmpy
-
-# Google
-google-cloud-speech==0.27.0
