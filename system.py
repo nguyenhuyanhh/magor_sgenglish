@@ -22,14 +22,22 @@ logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s (%(name)s | %(levelname)s) : %(message)s')
 LOG = logging.getLogger('system')
 
+# load manifest
 MANIFEST_FILE = os.path.join(CUR_DIR, 'manifest.json')
 with open(MANIFEST_FILE, 'r') as file_:
     MANIFEST = json.load(file_)
 PROCEDURES = MANIFEST['procedures']
-MODULES = MANIFEST['modules']
 FILE_TYPES = MANIFEST['file_types']
 VALID_TYPES = [x.decode('utf-8')
                for x in FILE_TYPES['audio'] + FILE_TYPES['video']]
+# load modules' manifests
+MANIFEST['modules'] = dict()
+for mod in os.listdir(MODULES_DIR):
+    mod_dir = os.path.join(MODULES_DIR, mod)
+    mod_manifest = os.path.join(mod_dir, 'manifest.json')
+    with open(mod_manifest, 'r') as file_:
+        MANIFEST['modules'][mod] = json.load(file_)
+MODULES = MANIFEST['modules']
 
 
 def manifest_check():
