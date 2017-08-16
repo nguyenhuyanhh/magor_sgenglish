@@ -1,91 +1,9 @@
 {
-    "modules": {
-        "resample-1.0": {
-            "name": "resample",
-            "version": "1.0",
-            "requires": [],
-            "inputs": [
-                "raw"
-            ],
-            "outputs": [
-                "resample"
-            ]
-        },
-        "convert-1.0": {
-            "name": "convert",
-            "version": "1.0",
-            "requires": [],
-            "inputs": [
-                "raw"
-            ],
-            "outputs": [
-                "convert"
-            ]
-        },
-        "diarize-8.4.1": {
-            "name": "diarize",
-            "version": "8.4.1",
-            "requires": [
-                "LIUM_SpkDiarization-8.4.1.jar"
-            ],
-            "inputs": [
-                "resample"
-            ],
-            "outputs": [
-                "diarize"
-            ]
-        },
-        "google-1beta1": {
-            "name": "google",
-            "version": "1beta1",
-            "requires": [
-                "key.json"
-            ],
-            "inputs": [
-                "resample",
-                "diarize"
-            ],
-            "outputs": [
-                "transcript/google"
-            ]
-        },
-        "lvcsr-1701": {
-            "name": "lvcsr",
-            "version": "1701",
-            "requires": [
-                "scripts/steps",
-                "scripts/utils",
-                "systems/fbank_nnet",
-                "systems/graph"
-            ],
-            "inputs": [
-                "resample",
-                "diarize"
-            ],
-            "outputs": [
-                "transcript/lvcsr"
-            ]
-        },
-        "capgen-1.0": {
-            "name": "capgen",
-            "version": "1.0",
-            "requires": [
-                "neuraltalk2",
-                "neuraltalk2/model/model_id1-501-1448236541.t7_cpu.t7"
-            ],
-            "inputs": [
-                "convert"
-            ],
-            "outputs": [
-                "keyframes"
-            ]
-        }
-    },
     "procedures": {
         "google": [
             "resample-1.0",
             "diarize-8.4.1",
-            "google-1beta1"
+            "google-1"
         ],
         "lvcsr": [
             "resample-1.0",

@@ -1,0 +1,13 @@
+{
+    "name": "diarize",
+    "version": "8.4.1",
+    "requires": [
+        "LIUM_SpkDiarization-8.4.1.jar"
+    ],
+    "inputs": [
+        "resample"
+    ],
+    "outputs": [
+        "diarize"
+    ]
+}

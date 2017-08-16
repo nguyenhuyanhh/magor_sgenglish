@@ -1,0 +1,11 @@
+{
+    "name": "convert",
+    "version": "1.0",
+    "requires": [],
+    "inputs": [
+        "raw"
+    ],
+    "outputs": [
+        "convert"
+    ]
+}

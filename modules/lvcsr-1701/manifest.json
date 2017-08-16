@@ -1,0 +1,17 @@
+{
+    "name": "lvcsr",
+    "version": "1701",
+    "requires": [
+        "scripts/steps",
+        "scripts/utils",
+        "systems/fbank_nnet",
+        "systems/graph"
+    ],
+    "inputs": [
+        "resample",
+        "diarize"
+    ],
+    "outputs": [
+        "transcript/lvcsr"
+    ]
+}

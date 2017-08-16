@@ -1,0 +1,11 @@
+{
+    "name": "resample",
+    "version": "1.0",
+    "requires": [],
+    "inputs": [
+        "raw"
+    ],
+    "outputs": [
+        "resample"
+    ]
+}

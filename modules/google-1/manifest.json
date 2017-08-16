@@ -1,0 +1,14 @@
+{
+    "name": "google",
+    "version": "1",
+    "requires": [
+        "key.json"
+    ],
+    "inputs": [
+        "resample",
+        "diarize"
+    ],
+    "outputs": [
+        "transcript/google"
+    ]
+}
