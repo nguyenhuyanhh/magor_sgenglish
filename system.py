@@ -40,6 +40,19 @@ for mod in os.listdir(MODULES_DIR):
 MODULES = MANIFEST['modules']
 
 
+def setup():
+    """Setup all modules."""
+    LOG.info('Starting setup...')
+    for mod_ in os.listdir(MODULES_DIR):
+        mod_dir_ = os.path.join(MODULES_DIR, mod_)
+        mod_setup = os.path.join(mod_dir_, 'setup')
+        try:
+            args = [mod_setup]
+            subprocess.call(args)
+        except BaseException:
+            LOG.info('Setup failed for module %s', mod_)
+
+
 def manifest_check():
     """
     Check the manifest at startup for consistency.
@@ -176,10 +189,12 @@ if __name__ == '__main__':
                             help='procedures to pass to workflow', nargs='*')
     ARG_PARSER.add_argument(
         '-t', '--test', action='store_true', help='just do system checks and exit')
+    ARG_PARSER.add_argument(
+        '-s', '--setup', action='store_true', help='setup all modules')
     ARGS = ARG_PARSER.parse_args()
+    if ARGS.setup:
+        setup()
     if ARGS.test:
         manifest_check()
-    elif ARGS.procedures is None:
-        workflow(['google', 'lvcsr'])
-    else:
+    elif ARGS.procedures:
         workflow(ARGS.procedures)
