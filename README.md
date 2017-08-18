@@ -18,8 +18,7 @@ The system was developed using Python 2.7.12 on Lubuntu 16.04.2 LTS.
 ## Setup
 
 1. Clone this project: `$ git clone https://github.com/nguyenhuyanhh/magor_sgenglish.git --recursive`
-1. Install python dependencies: `$ pip install --user -r requirements.txt`
-1. Setup the individual module dependencies as prescribed in [Modules](#modules-and-procedures)
+1. Setup the individual module dependencies *automatically* (`$ python system.py --setup`) or *manually* (as prescribed in [Modules](#modules-and-procedures))
 1. Crawl (put) files into `/crawl`
 1. Run the system: `$ python system.py [options]` (for a list of options, see `$ python system.py -h` or consult [Command-line interface](#command-line-interface) section below).
 
@@ -29,13 +28,14 @@ The system was developed using Python 2.7.12 on Lubuntu 16.04.2 LTS.
 
 ```
 $ python system.py -h
-usage: system.py [-h] [-p [procedure_id [procedure_id ...]]] [-t]
+usage: system.py [-h] [-p [procedure_id [procedure_id ...]]] [-t] [-s]
 
 optional arguments:
   -h, --help            show this help message and exit
   -p [procedure_id [procedure_id ...]], --procedures [procedure_id [procedure_id ...]]
                         procedures to pass to workflow
   -t, --test            just do system checks and exit
+  -s, --setup           setup all modules
 ```
 
 ### Overall repository structure

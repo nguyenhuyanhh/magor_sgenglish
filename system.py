@@ -43,6 +43,8 @@ MODULES = MANIFEST['modules']
 def setup():
     """Setup all modules."""
     LOG.info('Starting setup...')
+    args = ['pip2', 'install', '--user', 'python-slugify']
+    subprocess.call(args)
     for mod_ in os.listdir(MODULES_DIR):
         mod_dir_ = os.path.join(MODULES_DIR, mod_)
         mod_setup = os.path.join(mod_dir_, 'setup')
