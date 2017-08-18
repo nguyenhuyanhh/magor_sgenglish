@@ -112,7 +112,7 @@ class Process(object):
 
     def verify(self):
         """Verify the file type and procedure."""
-        if (os.path.splitext(self.filename)[1]) not in VALID_TYPES:
+        if (os.path.splitext(self.filename)[1].lower()) not in VALID_TYPES:
             LOG.info('%s is of invalid type', self.filename)
             return False
         if self.procedure_id not in PROCEDURES.keys():
