@@ -24,13 +24,13 @@ function install_kaldi {
     cd tools
     no_deps=0
     # check dependencies, parse the results to install deps
-    sudo apt-get install g++
+    sudo apt install g++
     while [ $no_deps -eq 0 ]; do
         deps=$(extras/check_dependencies.sh | grep 'sudo apt-get install' | cut -d' ' -f5- | xargs) || exit 1
         if [ -z "$deps" ]; then
             no_deps=1
         else
-            sudo apt-get install $deps
+            sudo apt install $deps
         fi
     done
     make -j $N_PROC || { echo "make failed for tools"; exit 1; }
@@ -55,12 +55,29 @@ function install_sequitur {
         echo "Sequitur already installed"
     else
         # install deps
-        sudo apt-get install python-pip swig
+        sudo apt install python-pip swig
         pip2 install --user --upgrade numpy
         extras/install_sequitur.sh || { echo "installation failed for sequitur"; exit 1; }
         echo "Sequitur successfully installed"
     fi
 }
+
+# Install LVCSR systems
+# (C) Xu Haihua, NTU
+cd $CUR_DIR
+if [ ! -d systems ]; then
+    if [ ! -f $HOME/systems.tar.gz ]; then
+        echo "Getting LVCSR system from NTU cluster (155.69.146.215)..."
+        echo "If you do not have access to this cluster, the next step would fail automatically."
+        read -p "Username: " username
+        scp $username@155.69.146.215:/home/nhanh/work/downloads/systems.tar.gz $HOME/systems.tar.gz || { echo "failed when downloading system"; exit 1; }
+    fi
+    tar -xvf $HOME/systems.tar.gz || { echo "failed when extracting system"; exit 1; }
+    rm $HOME/systems.tar.gz
+    echo "LVCSR system successfully installed"
+else
+    echo "LVCSR system already installed"
+fi
 
 # Check for kaldi installation using env
 if [ -z "$KALDI_ROOT" ]; then
@@ -71,19 +88,3 @@ fi
 
 # Install sequitur
 install_sequitur
-
-# Install LVCSR systems
-# (C) Xu Haihua, NTU
-cd $CUR_DIR
-if [ ! -d systems ]; then
-    if [ ! -f $HOME/systems.tar.gz ]; then
-        echo "Getting LVCSR system from NTU cluster (155.69.146.215)..."
-        read -p "Username: " username
-        scp $username@155.69.146.215:/home/nhanh/work/downloads/systems.tar.gz $HOME/systems.tar.gz || { echo "failed when downloading system"; exit 1; }
-    fi
-    tar -xvf $HOME/systems.tar.gz || { echo "failed when extracting system"; exit 1; }
-    rm $HOME/systems.tar.gz
-    echo "LVCSR system successfully installed"
-else
-    echo "LVCSR system already installed"
-fi

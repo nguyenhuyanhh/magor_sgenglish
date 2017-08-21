@@ -74,7 +74,7 @@ function install_loadcaffe {
     # loadcaffe
     loadcaffe_ver=$(luarocks show loadcaffe | grep loadcaffe -m 1 | cut -d' ' -f2)
     if [ -z $loadcaffe_ver ] || [ ! $loadcaffe_ver = 1.0-0 ]; then
-        sudo apt-get install libprotobuf-dev protobuf-compiler
+        sudo apt install libprotobuf-dev protobuf-compiler
         ubuntu_ver=$(lsb_release -r | cut -f2)
         if [ $ubuntu_ver = 16.04 ]; then
             CC=gcc-5 CXX=g++-5 luarocks install loadcaffe || { echo "failed while installing loadcaffe"; exit 1; }
@@ -87,7 +87,7 @@ function install_loadcaffe {
     # hdf5
     torch_hdf5_ver=$(luarocks show hdf5 | grep hdf5 -m 1 | cut -d' ' -f2)
     if [ -z $torch_hdf5_ver ] || [ ! $torch_hdf5_ver = 0-0 ]; then
-        sudo apt-get install python-h5py libhdf5-serial-dev hdf5-tools
+        sudo apt install python-h5py libhdf5-serial-dev hdf5-tools
         cd $HOME
         if [ -d torch-hdf5 ]; then
             cd torch-hdf5

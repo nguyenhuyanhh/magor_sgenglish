@@ -3,7 +3,7 @@
 
 # Check for ffmpeg installation
 if ! command -v ffmpeg >/dev/null 2>&1; then
-    sudo apt-get install ffmpeg
+    sudo apt install ffmpeg
 fi
 
 # Install/ upgrade python dependency
