@@ -138,14 +138,15 @@ Field types and value constraints:
 
 The modules included within this repository are:
 
-| Module | Version | `module-id` | Author/ Contributor | Requirements/ Setup
-| --- | --- | --- | --- | ---
-| `resample` | 1.0 | `resample-1.0` | Nguyen Huy Anh | `ffmpeg` installed, via `$ sudo apt-get install ffmpeg`
-| `convert` | 1.0 | `convert-1.0` | Nguyen Huy Anh | `ffmpeg` installed, via `$ sudo apt-get install ffmpeg`
-| `diarize` | 8.4.1 | `diarize-8.4.1` | Nguyen Huy Anh | Java 7 (at least) installed. Recommended to install [JDK 7/8](http://www.webupd8.org/2012/09/install-oracle-java-8-in-ubuntu-via-ppa.html)
-| `google` | 1 | `google-1` | Nguyen Huy Anh | A valid Google Service Account Key as `google*/key.json`. [How to acquire key](https://support.google.com/googleapi/answer/6158849)
-| `lvcsr` | 1701 | `lvcsr-1701` | Xu Haihua/ Nguyen Huy Anh | <ol><li>Install [Kaldi](https://github.com/kaldi-asr/kaldi) with `sequitur` (included in `/tools` after successful installation)</li><li>Include `$KALDI_ROOT` as an environment variable in `~/.bashrc`</li><li>Acquire the models and put into `/lvcsr*/systems` (The Singapore-English LVCSR models by Xu Haihua is the property of [Speech and Language Technology Program, School of Computer Science and Engineering, NTU](http://www.ntu.edu.sg/home/aseschng/#pf2), and is **not avalable outside NTU.**)</li></ol>
-| `capgen` | 1.0 | `capgen-1.0` | Peter/ Nguyen Huy Anh | Follow the instructions [here](https://github.com/karpathy/neuraltalk2). Also, put the cpu checkpoints in `capgen*/neuraltalk2/model/`
+| Module | Version | `module-id` | Author/ Contributor | System Requirements/ Setup | Python requirements
+| --- | --- | --- | --- | --- | ---
+| `resample` | 1.0 | `resample-1.0` | Nguyen Huy Anh | `ffmpeg` installed, via `$ sudo apt-get install ffmpeg` | `FFmpy`
+| `convert` | 1.0 | `convert-1.0` | Nguyen Huy Anh | `ffmpeg` installed, via `$ sudo apt-get install ffmpeg` | `FFmpy`
+| `diarize` | 8.4.1 | `diarize-8.4.1` | Nguyen Huy Anh | Java 7 (at least) installed. Recommended to install [JDK 7/8](http://www.webupd8.org/2012/09/install-oracle-java-8-in-ubuntu-via-ppa.html) | None
+| `google` | 1 | `google-1` | Nguyen Huy Anh | A valid Google Service Account Key as `google*/key.json`. [How to acquire key](https://support.google.com/googleapi/answer/6158849) | `google-cloud-speech`
+| `lvcsr` | 1701 | `lvcsr-1701` | Xu Haihua/ Nguyen Huy Anh | <ol><li>Install [Kaldi](https://github.com/kaldi-asr/kaldi) with `sequitur` (included in `/tools` after successful installation)</li><li>Include `$KALDI_ROOT` as an environment variable in `~/.bashrc`</li><li>Acquire the models and put into `/lvcsr*/systems` (The Singapore-English LVCSR models by Xu Haihua is the property of [Speech and Language Research Group, School of Computer Science and Engineering, NTU](http://www.ntu.edu.sg/home/aseschng/#pf2), and is **not avalable outside NTU.**)</li></ol> | None
+| `capgen` | 1.0 | `capgen-1.0` | Peter/ Nguyen Huy Anh | Follow the instructions [here](https://github.com/karpathy/neuraltalk2). Also, put the cpu checkpoints in `capgen*/neuraltalk2/model/` | None
+| `visualize` | 1.0 | `visualize-1.0` | Nguyen Huy Anh | `ffmpeg` installed, via `$ sudo apt-get install ffmpeg` | `FFmpy`
 
 Most of the setup procedures are automated into `setup` scripts.
 
@@ -166,6 +167,7 @@ data/
             google/     # output of module google: Google transcript (.txt, .TextGrid)
             lvcsr/      # output of module lvcsr: LVCSR transcript (.stm, .ctm, .csv, .TextGrid)
         keyframes/      # output of module capgen: key frames and captions (.png, .json)
+        visualize/      # output of module visualize: video (.mp4) and subtitles (.srt)
         temp/           # temp files for each module
             google/
             lvcsr/
