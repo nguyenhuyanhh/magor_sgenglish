@@ -7,5 +7,4 @@ if ! command -v ffmpeg >/dev/null 2>&1; then
 fi
 
 # Install/ upgrade python dependency
-pip2 install --user --upgrade ffmpy
-pip2 install --user --upgrade google-cloud-speech==0.27.0
+pip2 install --user --upgrade ffmpy google-cloud-speech
