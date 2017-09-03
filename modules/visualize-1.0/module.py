@@ -3,7 +3,7 @@ Module: visualize
 Version: 1.0
 Author: Nguyen Huy Anh
 
-Requires:
+Requires: image.png
 
 Visualize a file_id with transcripts into /visualize
 """

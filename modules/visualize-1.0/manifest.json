@@ -2,7 +2,7 @@
     "name": "visualize",
     "version": "1.0",
     "requires": [
-        "images.png"
+        "image.png"
     ],
     "inputs": [
         "raw",

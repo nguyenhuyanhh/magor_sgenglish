@@ -9,6 +9,6 @@
         "diarize"
     ],
     "outputs": [
-        "transcript/google"
+        "transcript"
     ]
 }

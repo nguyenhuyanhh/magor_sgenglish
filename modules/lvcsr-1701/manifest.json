@@ -12,6 +12,6 @@
         "diarize"
     ],
     "outputs": [
-        "transcript/lvcsr"
+        "transcript"
     ]
 }
