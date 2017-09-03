@@ -1,0 +1,15 @@
+{
+    "name": "visualize",
+    "version": "1.0",
+    "requires": [
+        "images.png"
+    ],
+    "inputs": [
+        "raw",
+        "resample",
+        "transcript"
+    ],
+    "outputs": [
+        "visualize"
+    ]
+}
