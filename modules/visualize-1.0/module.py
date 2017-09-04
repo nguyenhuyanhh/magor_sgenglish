@@ -10,6 +10,7 @@ Visualize a file_id with transcripts into /visualize
 
 import logging
 import os
+import shutil
 import sys
 from decimal import Decimal
 
@@ -87,27 +88,24 @@ def tg_to_srt(textgrid_file, srt_file):
 
 def video(audio_file, video_file):
     """Convert an audio file to a black-screened video file."""
-    # complete checks
-    if os.path.exists(video_file) and os.path.getsize(video_file) > 0:
-        LOG.debug('Previously converted %s', video_file)
-    else:
-        # specify ffmpeg inputs and outputs
-        inputs = {audio_file: None, PNG_FILE: '-loop 1'}
-        outputs = {
-            video_file: '-c:v libx264 -c:a libvo_aacenc -b:a 128k -pix_fmt yuv420p -shortest'}
-        # perform operation
-        ff_ = FFmpeg(inputs=inputs, outputs=outputs)
-        LOG.debug('Command: %s', ff_.cmd)
-        fnull = open(os.devnull, 'w')
-        ff_.run(stdout=fnull, stderr=fnull)  # silent output
-        LOG.debug('Converted %s into video file %s', audio_file, video_file)
+    # specify ffmpeg inputs and outputs
+    inputs = {audio_file: None, PNG_FILE: '-loop 1'}
+    outputs = {
+        video_file: '-c:v libx264 -c:a libvo_aacenc -b:a 128k -pix_fmt yuv420p -shortest'}
+    # perform operation
+    ff_ = FFmpeg(inputs=inputs, outputs=outputs)
+    LOG.debug('Command: %s', ff_.cmd)
+    fnull = open(os.devnull, 'w')
+    ff_.run(stdout=fnull, stderr=fnull)  # silent output
+    LOG.debug('Converted %s into video file %s', audio_file, video_file)
 
 
 def visualize(file_id):
     """Visualize a file_id."""
     # init paths
     working_dir = os.path.join(DATA_DIR, file_id)
-    # raw_dir = os.path.join(working_dir, 'raw/')
+    raw_dir = os.path.join(working_dir, 'raw/')
+    raw_file = os.path.join(raw_dir, os.listdir(raw_dir)[0])
     resample_dir = os.path.join(working_dir, 'resample/')
     resample_file = os.path.join(resample_dir, '{}.wav'.format(file_id))
     trans_dir = os.path.join(working_dir, 'transcript/google')
@@ -120,7 +118,13 @@ def visualize(file_id):
 
     # operations
     tg_to_srt(textgrid_file, srt_file)
-    if os.path.exists(resample_file):
+    # complete checks for video_file
+    if os.path.exists(video_file) and os.path.getsize(video_file) > 0:
+        LOG.debug('Previously processed %s', video_file)
+    elif os.path.splitext(raw_file)[1].lower() == '.mp4':
+        shutil.copy2(raw_file, video_file)
+        LOG.debug('Video raw file, copied into %s', video_file)
+    elif os.path.exists(resample_file):
         video(resample_file, video_file)
 
 

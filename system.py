@@ -28,8 +28,9 @@ with open(MANIFEST_FILE, 'r') as file_:
     MANIFEST = json.load(file_)
 PROCEDURES = MANIFEST['procedures']
 FILE_TYPES = MANIFEST['file_types']
-VALID_TYPES = [x.decode('utf-8')
-               for x in FILE_TYPES['audio'] + FILE_TYPES['video']]
+AUDIO_TYPES = [x.decode('utf-8') for x in FILE_TYPES['audio']]
+VIDEO_TYPES = [x.decode('utf-8') for x in FILE_TYPES['video']]
+VALID_TYPES = AUDIO_TYPES + VIDEO_TYPES
 # load modules' manifests
 MANIFEST['modules'] = dict()
 for mod in os.listdir(MODULES_DIR):
