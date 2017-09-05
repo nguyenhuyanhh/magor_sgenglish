@@ -13,5 +13,8 @@ crawl*/
 # Singapore English systems
 modules/lvcsr*/systems
 
+# VAD WIP
+modules/vad*
+
 # VSCode
 .vscode
