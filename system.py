@@ -186,18 +186,23 @@ def workflow(procedure_list):
                             procedure_id=procedure).pipeline()
 
 
-if __name__ == '__main__':
-    ARG_PARSER = argparse.ArgumentParser()
-    ARG_PARSER.add_argument('-p', '--procedures', metavar='procedure_id',
+def main():
+    """Entry point for the system."""
+    arg_parser = argparse.ArgumentParser()
+    arg_parser.add_argument('-p', '--procedures', metavar='procedure_id',
                             help='procedures to pass to workflow', nargs='*')
-    ARG_PARSER.add_argument(
+    arg_parser.add_argument(
         '-t', '--test', action='store_true', help='just do system checks and exit')
-    ARG_PARSER.add_argument(
+    arg_parser.add_argument(
         '-s', '--setup', action='store_true', help='setup all modules')
-    ARGS = ARG_PARSER.parse_args()
-    if ARGS.setup:
+    args = arg_parser.parse_args()
+    if args.setup:
         setup()
-    if ARGS.test:
+    if args.test:
         manifest_check()
-    elif ARGS.procedures:
-        workflow(ARGS.procedures)
+    elif args.procedures:
+        workflow(args.procedures)
+
+
+if __name__ == '__main__':
+    main()

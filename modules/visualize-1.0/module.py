@@ -34,7 +34,7 @@ LOG.setLevel(logging.DEBUG)
 PNG_FILE = os.path.join(CUR_DIR, 'image.png')
 
 
-def secs_to_timestamp(secs):
+def secs_to_hms(secs):
     """Convert a timestamp in seconds to a timestamp in hh:mm:ss,sss"""
     time = int(Decimal(secs) * 1000)
     time_s, time_ms = divmod(time, 1000)
@@ -108,7 +108,7 @@ def write_srt(srt, srt_file):
     for key in sorted(srt):
         srt_dict[i] = list()
         srt_dict[i].append(
-            '{} --> {}'.format(secs_to_timestamp(srt[key]['xmin']), secs_to_timestamp(srt[key]['xmax'])))
+            '{} --> {}'.format(secs_to_hms(srt[key]['xmin']), secs_to_hms(srt[key]['xmax'])))
         srt_dict[i].append(srt[key]['trans'])
         i += 1
 
