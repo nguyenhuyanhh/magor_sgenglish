@@ -75,12 +75,12 @@ def seg_to_dict(diarize_file, temp_dir, temp_id):
     return diarize_dict
 
 
-def dict_to_wav(diarize_dict, resample_file, temp_dir, temp_id):
+def dict_to_wav(diarize_dict, audio_file, temp_dir, temp_id):
     """Split resampled wav file into segments based on seg_to_dict.
 
     Arguments:
         diarize_dict: dict - diarize data structure from seg_to_dict
-        resample_file: str - path to resampled wav file
+        audio_file: str - path to resampled wav file
         temp_dir: str - path to temp folder
         temp_id: str - unique id to append to temp file names
     """
@@ -102,7 +102,7 @@ def dict_to_wav(diarize_dict, resample_file, temp_dir, temp_id):
                 temp_dir, '{}_{}-{}.wav'.format(temp_id, count, value[0]))
             part_dur = Decimal(value[2]) - Decimal(value[1])
             inputs = {
-                resample_file: '-ss {} -t {}'.format(value[1], str(part_dur))}
+                audio_file: '-ss {} -t {}'.format(value[1], str(part_dur))}
             outputs = {diar_part_file: None}
             fnull = open(os.devnull, 'w')
             FFmpeg(inputs=inputs, outputs=outputs).run(
@@ -193,25 +193,25 @@ def wav_to_trans(diarize_dict, speech_client, temp_dir, temp_id):
     return diarize_dict
 
 
-def trans_to_tg(diarize_dict, resample_file, temp_dir, temp_id, google_file, google_textgrid):
+def trans_to_tg(diarize_dict, audio_file, temp_dir, temp_id, google_txt, google_textgrid):
     """Produce text transcript and TextGrid with speaker ids.
 
     Arguments:
         diarize_dict: dict - diarize data structure from wav_to_trans
-        resample_file: str - path to resampled wav file
+        audio_file: str - path to resampled wav file
         temp_dir: str - path to temp folder
         temp_id: str - unique id to append to temp file names
-        google_file: str - path to transcript (.txt)
+        google_txt: str - path to transcript (.txt)
         google_textgrid: str - path to transcript (.TextGrid)
     """
     # complete check for google_file
-    if os.path.exists(google_file):
-        LOG.debug('Previously written %s', google_file)
+    if os.path.exists(google_txt):
+        LOG.debug('Previously written %s', google_txt)
     else:
-        with open(google_file, 'w') as file_out:
+        with open(google_txt, 'w') as file_out:
             for key in sorted(diarize_dict):
                 file_out.write(diarize_dict[key][4].encode('utf-8') + '\n')
-        LOG.debug('Written %s', google_file)
+        LOG.debug('Written %s', google_txt)
 
     # complete check for google_textgrid
     if os.path.exists(google_textgrid):
@@ -235,7 +235,7 @@ def trans_to_tg(diarize_dict, resample_file, temp_dir, temp_id, google_file, goo
         tab4 = ' ' * 4
         tab8 = ' ' * 8
         tab12 = ' ' * 12
-        file_ = wave.open(resample_file, 'r')
+        file_ = wave.open(audio_file, 'r')
         duration = Decimal(file_.getnframes() / file_.getframerate())
         file_.close()
         with open(google_textgrid, 'w') as file_out:
@@ -272,7 +272,15 @@ def google(file_id):
     # init paths
     working_dir = os.path.join(DATA_DIR, file_id)
     resample_dir = os.path.join(working_dir, 'resample/')
-    resample_count = len(os.listdir(resample_dir))
+    try:
+        resample_count = len(os.listdir(resample_dir))
+    except OSError:  # no resample_dir
+        resample_count = 0
+    vad_dir = os.path.join(working_dir, 'vad/')
+    try:
+        vad_count = len(os.listdir(vad_dir))
+    except OSError:  # no vad_dir
+        vad_count = 0
     diarize_dir = os.path.join(working_dir, 'diarization/')
     diarize_count = len(os.listdir(diarize_dir))
     transcribe_dir = os.path.join(working_dir, 'transcript', 'google')
@@ -290,26 +298,62 @@ def google(file_id):
     # operations
     # case 1: only one resampled file and one diarization file
     if resample_count == diarize_count == 1:
-        google_file = os.path.join(transcribe_dir, '{}.txt'.format(file_id))
+        LOG.debug('Transcribing single audio stream...')
+        google_txt = os.path.join(transcribe_dir, '{}.txt'.format(file_id))
         google_textgrid = os.path.join(
             transcribe_dir, '{}.TextGrid'.format(file_id))
 
         # complete check
-        if os.path.exists(google_file) and os.path.exists(google_textgrid):
+        if os.path.exists(google_txt) and os.path.exists(google_textgrid):
             LOG.debug('Previously transcribed %s, %s',
-                      google_file, google_textgrid)
+                      google_txt, google_textgrid)
         else:
             temp_id = file_id[:8] + '0'
-            resample_file = os.path.join(
+            audio_file = os.path.join(
                 resample_dir, '{}.wav'.format(file_id))
             diarize_file = os.path.join(diarize_dir, '{}.seg'.format(file_id))
             diarize_dict = seg_to_dict(diarize_file, temp_dir, temp_id)
             diarize_dict = dict_to_wav(
-                diarize_dict, resample_file, temp_dir, temp_id)
+                diarize_dict, audio_file, temp_dir, temp_id)
             diarize_dict = wav_to_trans(
                 diarize_dict, client, temp_dir, temp_id)
-            trans_to_tg(diarize_dict, resample_file, temp_dir,
-                        temp_id, google_file, google_textgrid)
+            trans_to_tg(diarize_dict, audio_file, temp_dir,
+                        temp_id, google_txt, google_textgrid)
+
+    # case 2: multiple vad files and diarization files
+    elif vad_count == diarize_count >= 1:
+        LOG.debug('Transcribing multi-channel recording...')
+        # make sure the filenames are the same throughout
+        vad_names = sorted([os.path.splitext(i)[0]
+                            for i in os.listdir(vad_dir)])
+        diarize_names = sorted([os.path.splitext(j)[0]
+                                for j in os.listdir(diarize_dir)])
+        if vad_names == diarize_names:
+            for i in range(vad_count):
+                google_txt = os.path.join(
+                    transcribe_dir, '{}.txt'.format(vad_names[i]))
+                google_textgrid = os.path.join(
+                    transcribe_dir, '{}.TextGrid'.format(vad_names[i]))
+
+                # complete check
+                if os.path.exists(google_txt) and os.path.exists(google_textgrid):
+                    LOG.debug('Previously transcribed %s, %s',
+                              google_txt, google_textgrid)
+                else:
+                    temp_id = file_id[:8] + str(i)
+                    audio_file = os.path.join(
+                        vad_dir, '{}.wav'.format(vad_names[i]))
+                    diarize_file = os.path.join(
+                        diarize_dir, '{}.seg'.format(vad_names[i]))
+                    diarize_dict = seg_to_dict(diarize_file, temp_dir, temp_id)
+                    diarize_dict = dict_to_wav(
+                        diarize_dict, audio_file, temp_dir, temp_id)
+                    diarize_dict = wav_to_trans(
+                        diarize_dict, client, temp_dir, temp_id)
+                    trans_to_tg(diarize_dict, audio_file, temp_dir,
+                                temp_id, google_txt, google_textgrid)
+        else:
+            LOG.debug('Invalid vad inputs for %s', file_id)
 
 
 if __name__ == '__main__':
