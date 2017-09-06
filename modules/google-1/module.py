@@ -40,13 +40,20 @@ LOG.addHandler(LOG_H)
 LOG.setLevel(logging.DEBUG)
 
 
-def seg_to_dict(diarize_file, temp_dir):
-    """Parse segment file to python-friendly structure."""
+def seg_to_dict(diarize_file, temp_dir, temp_id):
+    """Parse segment file to python-friendly structure.
+
+    Arguments:
+        diarize_file: str - path to .seg file
+        temp_dir: str - path to temp folder
+        temp_id: str - unique id to append to temp file names
+    """
     diarize_dict = dict()
 
     # complete check using temp file
     # if completed, deserialize to diarize_dict; else start process
-    temp_seg_to_dict = os.path.join(temp_dir, 'seg_to_dict.json')
+    temp_seg_to_dict = os.path.join(
+        temp_dir, '{}_seg_to_dict.json'.format(temp_id))
     if os.path.exists(temp_seg_to_dict):
         with open(temp_seg_to_dict, 'r') as file_:
             tmp = json.load(file_)
@@ -68,11 +75,19 @@ def seg_to_dict(diarize_file, temp_dir):
     return diarize_dict
 
 
-def dict_to_wav(diarize_dict, resample_file, temp_dir):
-    """Split resampled wav file into segments based on seg_to_dict."""
+def dict_to_wav(diarize_dict, resample_file, temp_dir, temp_id):
+    """Split resampled wav file into segments based on seg_to_dict.
+
+    Arguments:
+        diarize_dict: dict - diarize data structure from seg_to_dict
+        resample_file: str - path to resampled wav file
+        temp_dir: str - path to temp folder
+        temp_id: str - unique id to append to temp file names
+    """
     # complete check using temp file
     # if completed, deserialize to diarize_dict; else start process
-    temp_dict_to_wav = os.path.join(temp_dir, 'dict_to_wav.json')
+    temp_dict_to_wav = os.path.join(
+        temp_dir, '{}_dict_to_wav.json'.format(temp_id))
     if os.path.exists(temp_dict_to_wav):
         with open(temp_dict_to_wav, 'r') as file_:
             tmp = json.load(file_)
@@ -84,7 +99,7 @@ def dict_to_wav(diarize_dict, resample_file, temp_dir):
         for key in sorted_keys:
             value = diarize_dict[key]
             diar_part_file = os.path.join(
-                temp_dir, '{}-{}.wav'.format(count, value[0]))
+                temp_dir, '{}_{}-{}.wav'.format(temp_id, count, value[0]))
             part_dur = Decimal(value[2]) - Decimal(value[1])
             inputs = {
                 resample_file: '-ss {} -t {}'.format(value[1], str(part_dur))}
@@ -100,11 +115,19 @@ def dict_to_wav(diarize_dict, resample_file, temp_dir):
     return diarize_dict
 
 
-def wav_to_trans(diarize_dict, speech_client, temp_dir):
-    """Transcribe segment by segment."""
+def wav_to_trans(diarize_dict, speech_client, temp_dir, temp_id):
+    """Transcribe segment by segment.
+
+    Arguments:
+        diarize_dict: dict - diarize data structure from dict_to_wav
+        speech_client: google.cloud.speech.SpeechClient - GCS client
+        temp_dir: str - path to temp folder
+        temp_id: str - unique id to append to temp file names
+    """
     # complete check using temp file
     # if completed, deserialize to diarize_dict; else start process
-    temp_wav_to_trans = os.path.join(temp_dir, 'wav_to_trans.json')
+    temp_wav_to_trans = os.path.join(
+        temp_dir, '{}_wav_to_trans.json'.format(temp_id))
     if os.path.exists(temp_wav_to_trans):
         with open(temp_wav_to_trans, 'r') as file_:
             tmp = json.load(file_)
@@ -114,7 +137,7 @@ def wav_to_trans(diarize_dict, speech_client, temp_dir):
         sorted_keys = sorted([x for x in diarize_dict.keys()])
         for key in sorted_keys:
             value = diarize_dict[key]
-            tmp = os.path.join(temp_dir, str(key))
+            tmp = os.path.join(temp_dir, '{}_{}'.format(temp_id, key))
 
             # complete check using temp file
             if os.path.exists(tmp):
@@ -170,8 +193,17 @@ def wav_to_trans(diarize_dict, speech_client, temp_dir):
     return diarize_dict
 
 
-def trans_to_tg(diarize_dict, resample_file, temp_dir, google_file, google_textgrid):
-    """Produce text transcript and TextGrid with speaker ids."""
+def trans_to_tg(diarize_dict, resample_file, temp_dir, temp_id, google_file, google_textgrid):
+    """Produce text transcript and TextGrid with speaker ids.
+
+    Arguments:
+        diarize_dict: dict - diarize data structure from wav_to_trans
+        resample_file: str - path to resampled wav file
+        temp_dir: str - path to temp folder
+        temp_id: str - unique id to append to temp file names
+        google_file: str - path to transcript (.txt)
+        google_textgrid: str - path to transcript (.TextGrid)
+    """
     # complete check for google_file
     if os.path.exists(google_file):
         LOG.debug('Previously written %s', google_file)
@@ -193,7 +225,8 @@ def trans_to_tg(diarize_dict, resample_file, temp_dir, google_file, google_textg
                 textgrid_dict[spk_id] = [(value[1], value[2], value[4])]
             else:
                 textgrid_dict[spk_id].append((value[1], value[2], value[4]))
-        temp_trans_to_tg = os.path.join(temp_dir, 'trans_to_tg.json')
+        temp_trans_to_tg = os.path.join(
+            temp_dir, '{}_trans_to_tg.json'.format(temp_id))
         with open(temp_trans_to_tg, 'w') as file_out:
             json.dump(textgrid_dict, file_out, sort_keys=True, indent=4)
         LOG.debug('trans_to_tg operation completed')
@@ -239,36 +272,44 @@ def google(file_id):
     # init paths
     working_dir = os.path.join(DATA_DIR, file_id)
     resample_dir = os.path.join(working_dir, 'resample/')
-    resample_file = os.path.join(resample_dir, '{}.wav'.format(file_id))
+    resample_count = len(os.listdir(resample_dir))
     diarize_dir = os.path.join(working_dir, 'diarization/')
-    diarize_file = os.path.join(diarize_dir, '{}.seg'.format(file_id))
+    diarize_count = len(os.listdir(diarize_dir))
     transcribe_dir = os.path.join(working_dir, 'transcript', 'google')
-    google_file = os.path.join(transcribe_dir, '{}.txt'.format(file_id))
-    google_textgrid = os.path.join(
-        transcribe_dir, '{}.TextGrid'.format(file_id))
+    if not os.path.exists(transcribe_dir):
+        os.makedirs(transcribe_dir)
     temp_dir = os.path.join(working_dir, 'temp', 'google')
     if not os.path.exists(temp_dir):
         os.makedirs(temp_dir)
 
-    # complete check
-    if os.path.exists(google_file) and os.path.exists(google_textgrid):
-        LOG.debug('Previously transcribed %s, %s',
-                  google_file, google_textgrid)
-    else:
-        if not os.path.exists(transcribe_dir):
-            os.makedirs(transcribe_dir)
+    # init google api
+    json_key = os.path.join(CUR_DIR, 'key.json')
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = json_key
+    client = speech.SpeechClient()
 
-        # init google api
-        json_key = os.path.join(CUR_DIR, 'key.json')
-        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = json_key
-        client = speech.SpeechClient()
+    # operations
+    # case 1: only one resampled file and one diarization file
+    if resample_count == diarize_count == 1:
+        google_file = os.path.join(transcribe_dir, '{}.txt'.format(file_id))
+        google_textgrid = os.path.join(
+            transcribe_dir, '{}.TextGrid'.format(file_id))
 
-        # operations
-        diarize_dict = seg_to_dict(diarize_file, temp_dir)
-        diarize_dict = dict_to_wav(diarize_dict, resample_file, temp_dir)
-        diarize_dict = wav_to_trans(diarize_dict, client, temp_dir)
-        trans_to_tg(diarize_dict, resample_file, temp_dir,
-                    google_file, google_textgrid)
+        # complete check
+        if os.path.exists(google_file) and os.path.exists(google_textgrid):
+            LOG.debug('Previously transcribed %s, %s',
+                      google_file, google_textgrid)
+        else:
+            temp_id = file_id[:8] + '0'
+            resample_file = os.path.join(
+                resample_dir, '{}.wav'.format(file_id))
+            diarize_file = os.path.join(diarize_dir, '{}.seg'.format(file_id))
+            diarize_dict = seg_to_dict(diarize_file, temp_dir, temp_id)
+            diarize_dict = dict_to_wav(
+                diarize_dict, resample_file, temp_dir, temp_id)
+            diarize_dict = wav_to_trans(
+                diarize_dict, client, temp_dir, temp_id)
+            trans_to_tg(diarize_dict, resample_file, temp_dir,
+                        temp_id, google_file, google_textgrid)
 
 
 if __name__ == '__main__':
