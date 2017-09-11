@@ -34,17 +34,14 @@ LOG.setLevel(logging.DEBUG)
 PNG_FILE = os.path.join(CUR_DIR, 'image.png')
 
 
-def secs_to_hms(secs):
-    """Convert a timestamp in seconds to a timestamp in hh:mm:ss,sss"""
-    time = int(Decimal(secs) * 1000)
-    time_s, time_ms = divmod(time, 1000)
-    time_m, time_s = divmod(time_s, 60)
-    time_h, time_m = divmod(time_m, 60)
-    return '{:02d}:{:02d}:{:02d},{:03d}'.format(time_h, time_m, time_s, time_ms)
+def tg_to_srt(textgrid_file, textgrid_id, temp_file):
+    """Convert a TextGrid file to an SRT data structure, and store in temp file.
 
-
-def tg_to_srt(textgrid_file, id_, temp_file):
-    """Convert a TextGrid file to an SRT data structure."""
+    Arguments:
+        textgrid_file: str - path to TextGrid file
+        textgrid_id: str - id of TextGrid file (in case of multiple TextGrids)
+        temp_file: str - path to temp file
+    """
     srt = dict()
 
     # complete checks
@@ -66,16 +63,16 @@ def tg_to_srt(textgrid_file, id_, temp_file):
                 # get the xmin, xmax and text
                 i += 5
                 while i < len(lines) and lines[i].startswith(' ' * 12 + 'xmin'):
-                    xmin = lines[i].strip().split()[2]
-                    xmin_key = int(Decimal(xmin) * 100)
-                    xmax = lines[i + 1].strip().split()[2]
+                    xmin = int(Decimal(lines[i].strip().split()[2]) * 100)
+                    xmax = int(Decimal(lines[i + 1].strip().split()[2]) * 100)
                     text = ' '.join(
                         lines[i + 2].strip().split()[2:]).strip('"')
-                    trans = '[{}]{}: {}'.format(id_, spk_id, text)
-                    srt[xmin_key] = {
+                    srt[xmin] = {
                         'xmin': xmin,
                         'xmax': xmax,
-                        'trans': trans,
+                        'tg_id': textgrid_id,
+                        'spk_id': spk_id,
+                        'text': text,
                     }
                     i += 4
             i += 1
@@ -88,36 +85,78 @@ def tg_to_srt(textgrid_file, id_, temp_file):
     return srt
 
 
-def combine_srt(srt1, srt2):
-    """Combine two srt data structures together."""
+def combine_srt(srt_list, temp_dir):
+    """Combine multiple srt data structures together.
+
+    Arguments:
+        srt_list: list(dict) - list of srt data structures
+        temp_dir: str - path to temp folder
+    """
+    temp_file = os.path.join(temp_dir, 'combine_srt.json')
+    # get a list of start-end time boundaries
+    time_bound = set()
+    for srt in srt_list:
+        for value in srt.values():
+            time_bound.add(value['xmin'])
+            time_bound.add(value['xmax'])
+    time_bound = sorted(list(time_bound))
+
+    # assign texts to time boundaries
     result = dict()
-    for key, value in srt1.items():
-        result[key] = {
-            'xmin': value['xmin'],
-            'xmax': value['xmax'],
-            'trans': value['trans'] + '\n' + srt2[key]['trans']
-        }
+    for i in range(len(time_bound) - 1):
+        ymin = time_bound[i]
+        ymax = time_bound[i + 1]
+        tmp = dict()
+        for srt in srt_list:
+            for key, value in sorted(srt.items()):
+                if key <= ymin <= ymax <= value['xmax']:
+                    tmp[value['tg_id']] = [value['spk_id'], value['text']]
+        if tmp:
+            result[ymin] = {
+                'ymin': ymin,
+                'ymax': ymax,
+            }
+            for key, value in sorted(tmp.items()):
+                result[ymin][key] = value
+
+    with open(temp_file, 'w') as json_:
+        json.dump(result, json_, indent=4, sort_keys=True)
     LOG.debug('combine_srt operation completed')
     return result
+
+
+def secs_to_hms(secs):
+    """Convert a timestamp in srt data structure to a timestamp in hh:mm:ss,sss.
+
+    Arguments:
+        secs: int/ str - timestamp in srt data structure
+    """
+    time = int(Decimal(secs) * 10)
+    time_s, time_ms = divmod(time, 1000)
+    time_m, time_s = divmod(time_s, 60)
+    time_h, time_m = divmod(time_m, 60)
+    return '{:02d}:{:02d}:{:02d},{:03d}'.format(time_h, time_m, time_s, time_ms)
 
 
 def write_srt(srt, srt_file):
     """Write srt file from srt data structure."""
     i = 1
     srt_dict = dict()
-    for key in sorted(srt):
+    for key, value in sorted(srt.items()):
+        trans = sorted(
+            [j for j in value.keys() if j != 'ymin' and j != 'ymax'])
         srt_dict[i] = list()
         srt_dict[i].append(
-            '{} --> {}'.format(secs_to_hms(srt[key]['xmin']), secs_to_hms(srt[key]['xmax'])))
-        srt_dict[i].append(srt[key]['trans'])
+            '{} --> {}'.format(secs_to_hms(value['ymin']), secs_to_hms(value['ymax'])))
+        for tran in trans:
+            srt_dict[i].append('[{}]{}: {}'.format(
+                tran, value[tran][0], value[tran][1]))
         i += 1
 
     with open(srt_file, 'w') as file_:
-        for key in sorted(srt_dict):
-            file_.write('{}\n'. format(key))
-            file_.write(srt_dict[key][0] + '\n')
-            file_.write(srt_dict[key][1] + '\n')
-            file_.write('\n')
+        for key, value in sorted(srt_dict.items()):
+            file_.write('\n'.join([str(key)] + value))
+            file_.write('\n\n')
 
     LOG.debug('Written %s', srt_file)
 
@@ -164,14 +203,8 @@ def visualize(file_id):
             temp_file = os.path.join(temp_dir, '{}.json'.format(trans))
             tmp.append(tg_to_srt(trans_file, trans, temp_file))
 
-        # merge srt data structures if necessary
-        srt_data = tmp[0]
-        if len(tmp) >= 2:
-            for i in range(1, len(tmp)):
-                srt_data = combine_srt(srt_data, tmp[i])
-
-        # write srt
-        write_srt(srt_data, srt_file)
+        # merge srt data structures and write
+        write_srt(combine_srt(tmp, temp_dir), srt_file)
     else:
         LOG.debug('No transcripts found for %s', file_id)
 
