@@ -34,15 +34,16 @@ LOG.setLevel(logging.DEBUG)
 PNG_FILE = os.path.join(CUR_DIR, 'image.png')
 
 
-def tg_to_srt(textgrid_file, textgrid_id, temp_file):
+def tg_to_srt(textgrid_file, textgrid_id, temp_dir):
     """Convert a TextGrid file to an SRT data structure, and store in temp file.
 
     Arguments:
         textgrid_file: str - path to TextGrid file
         textgrid_id: str - id of TextGrid file (in case of multiple TextGrids)
-        temp_file: str - path to temp file
+        temp_dir: str - path to temp folder
     """
     srt = dict()
+    temp_file = os.path.join(temp_dir, '{}.json'.format(textgrid_id))
 
     # complete checks
     if os.path.exists(temp_file) and os.path.getsize(temp_file) > 0:
@@ -198,10 +199,17 @@ def visualize(file_id):
     if os.listdir(trans_dir):
         # transform all textgrids to srt data structure
         for trans in os.listdir(trans_dir):
-            trans_file = os.path.join(
-                trans_dir, trans, '{}.TextGrid'.format(file_id))
-            temp_file = os.path.join(temp_dir, '{}.json'.format(trans))
-            tmp.append(tg_to_srt(trans_file, trans, temp_file))
+            trans_subdir = os.path.join(trans_dir, trans)
+            trans_single = os.path.join(
+                trans_subdir, '{}.TextGrid'.format(file_id))
+            trans_files = [i for i in os.listdir(trans_subdir) if os.path.splitext(i)[
+                1] == '.TextGrid']
+            if os.path.exists(trans_single):  # single-file transcript
+                tmp.append(tg_to_srt(trans_single, trans, temp_dir))
+            elif trans_files:  # multi-file transcript
+                for file_ in trans_files:
+                    tmp.append(tg_to_srt(os.path.join(
+                        trans_subdir, file_), os.path.splitext(file_)[0], temp_dir))
 
         # merge srt data structures and write
         write_srt(combine_srt(tmp, temp_dir), srt_file)
