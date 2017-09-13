@@ -4,6 +4,7 @@ from __future__ import print_function
 
 import argparse
 import json
+import itertools
 import logging
 import os
 import shutil
@@ -112,45 +113,72 @@ def manifest_check():
 class Operation(object):
     """
     Processing tasks.
-    Syntax: Operation(filename, procedure_id)
+    Syntax: Operation(procedure_id, file_name=None, file_id=None)
     """
 
-    def __init__(self, filename, procedure_id):
-        self.filename = filename
-        self.file_id = slugify(os.path.splitext(filename)[0])
+    def __init__(self, procedure_id, file_name=None, file_id=None):
+        if not (file_name or file_id):
+            self.valid = False  # invalid operation
+        elif file_name:
+            self.file_name = file_name
+            self.file_id = slugify(os.path.splitext(file_name)[0])
+            self.valid = True
+        elif file_id:
+            self.file_name = None
+            self.file_id = file_id
+            self.valid = True
         self.procedure_id = procedure_id
 
         # set later during verify()
         self.module_list = None
 
     def __repr__(self):
-        return 'Operation({}, {})'.format(self.filename, self.procedure_id)
+        result = 'Operation(file_name={}, file_id={}, procedure_id={})'.format(
+            self.file_name, self.file_id, self.procedure_id)
+        return result
 
     def verify(self):
-        """Verify the file type and procedure."""
-        if (os.path.splitext(self.filename)[1].lower()) not in VALID_TYPES:
-            LOG.info('%s is of invalid type', self.filename)
+        """Verify the files and procedure."""
+        # check for valid operation
+        if not self.valid:
             return False
+
+        # check for valid file and file_id
+        if self.file_name and (os.path.splitext(self.file_name)[1].lower()) not in VALID_TYPES:
+            LOG.info('%s is of invalid type', self.file_name)
+            return False
+        elif self.file_id and not os.path.exists(os.path.join(DATA_DIR, self.file_id)):
+            LOG.info('%s does not exist', self.file_id)
+            return False
+
+        # check for valid procedure
         if self.procedure_id not in PROCEDURES.keys():
             LOG.info('Procedure %s does not exist', self.procedure_id)
             return False
-        # set module list
+
+        # if all is well, set module list
         self.module_list = PROCEDURES[self.procedure_id]
         return True
 
     def import_file(self):
         """Import the file into /data."""
-        file_path = os.path.join(CRAWL_DIR, self.filename)
+        # init paths
         working_dir = os.path.join(DATA_DIR, self.file_id)
         raw_dir = os.path.join(working_dir, 'raw/')
-        raw_file = os.path.join(raw_dir, self.filename)
-        if os.path.exists(raw_file):
-            LOG.info('Previously imported to %s', raw_file)
+        if not os.path.exists(raw_dir):
+            os.makedirs(raw_dir)
+
+        if self.file_name:
+            file_path = os.path.join(CRAWL_DIR, self.file_name)
+            raw_file = os.path.join(raw_dir, self.file_name)
+            if os.path.exists(raw_file):
+                LOG.info('Previously imported to %s', raw_file)
+            else:
+                shutil.copy2(file_path, raw_dir)
+                LOG.info('Imported %s to %s', file_path, raw_dir)
         else:
-            if not os.path.exists(raw_dir):
-                os.makedirs(raw_dir)
-            shutil.copy2(file_path, raw_dir)
-            LOG.info('Imported %s to %s', file_path, raw_dir)
+            if os.path.exists(raw_dir) and os.listdir(raw_dir):
+                LOG.info('Previously imported to %s', raw_dir)
 
     def call(self, module_id):
         """Atom instruction to call a module."""
@@ -164,7 +192,8 @@ class Operation(object):
     def pipeline(self):
         """Pipeline for processing."""
         print('\n')
-        LOG.info('Filename: %s.', self.filename)
+        if self.file_name:
+            LOG.info('Filename: %s.', self.file_name)
         LOG.info('File ID: %s.', self.file_id)
         LOG.info('Procedure: %s.', self.procedure_id)
         if self.verify():
@@ -172,30 +201,44 @@ class Operation(object):
             for mod_id in self.module_list:
                 self.call(mod_id)
             LOG.info('Pipeline completed for %s using procedure %s',
-                     self.filename, self.procedure_id)
+                     self.file_name, self.procedure_id)
         else:
             LOG.info('Verification failed for %s using procedure %s',
-                     self.filename, self.procedure_id)
+                     self.file_name, self.procedure_id)
 
 
-def workflow(procedure_list, simulate=False):
-    """Processing workflow, using a procedure list."""
+def workflow(file_names, file_ids, procedures, simulate=False):
+    """Processing workflow, using a procedure/ list."""
     manifest_check()
-    for filename in os.listdir(CRAWL_DIR):
-        if os.path.isfile(os.path.join(CRAWL_DIR, filename)):
-            for procedure in procedure_list:
-                if procedure in PROCEDURES.keys():
-                    if simulate:
-                        LOG.debug('%s', Operation(
-                            filename=filename, procedure_id=procedure))
-                    else:
-                        Operation(filename=filename,
-                                  procedure_id=procedure).pipeline()
+    valid_procs = [i for i in procedures if i in PROCEDURES.keys()]
+    if file_names:
+        valid_names = [i for i in file_names if os.path.isfile(
+            os.path.join(CRAWL_DIR, i))]
+        for i in itertools.product(valid_names, valid_procs):
+            if simulate:
+                LOG.debug('%s', Operation(file_name=i[0], procedure_id=i[1]))
+            else:
+                Operation(file_name=i[0], procedure_id=i[1]).pipeline()
+    if file_ids:
+        valid_ids = [i for i in file_ids if os.path.isdir(
+            os.path.join(DATA_DIR, i))]
+        for i in itertools.product(valid_ids, valid_procs):
+            if simulate:
+                LOG.debug('%s', Operation(file_id=i[0], procedure_id=i[1]))
+            else:
+                Operation(file_id=i[0], procedure_id=i[1]).pipeline()
+    if not (file_names or file_ids):  # do everything
+        workflow(file_names=os.listdir(CRAWL_DIR), file_ids=os.listdir(
+            DATA_DIR), procedures=valid_procs, simulate=simulate)
 
 
 def main():
     """Entry point for the system."""
     arg_parser = argparse.ArgumentParser()
+    arg_parser.add_argument('-f', '--files', metavar='file_name',
+                            help='file_names to process', nargs='*')
+    arg_parser.add_argument('-i', '--ids', metavar='file_id',
+                            help='file_ids to process', nargs='*')
     arg_parser.add_argument('-p', '--procedures', metavar='procedure_id',
                             help='procedures to pass to workflow', nargs='*')
     arg_parser.add_argument(
@@ -210,7 +253,7 @@ def main():
     if args.test:
         manifest_check()
     elif args.procedures:
-        workflow(args.procedures, args.simulate)
+        workflow(args.files, args.ids, args.procedures, args.simulate)
 
 
 if __name__ == '__main__':

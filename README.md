@@ -28,10 +28,16 @@ The system was developed using Python 2.7.12 on Lubuntu 16.04.2 LTS.
 
 ```
 $ python system.py -h
-usage: system.py [-h] [-p [procedure_id [procedure_id ...]]] [-t] [-s] [-n]
+usage: system.py [-h] [-f [file_name [file_name ...]]]
+                 [-i [file_id [file_id ...]]]
+                 [-p [procedure_id [procedure_id ...]]] [-t] [-s] [-n]
 
 optional arguments:
   -h, --help            show this help message and exit
+  -f [file_name [file_name ...]], --files [file_name [file_name ...]]
+                        file_names to process
+  -i [file_id [file_id ...]], --ids [file_id [file_id ...]]
+                        file_ids to process
   -p [procedure_id [procedure_id ...]], --procedures [procedure_id [procedure_id ...]]
                         procedures to pass to workflow
   -t, --test            just do system checks and exit
