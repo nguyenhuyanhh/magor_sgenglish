@@ -142,6 +142,7 @@ The modules included within this repository are:
 | --- | --- | --- | --- | --- | ---
 | `resample` | 1.0 | `resample-1.0` | Nguyen Huy Anh | `ffmpeg` installed, via `$ sudo apt-get install ffmpeg` | `FFmpy`
 | `convert` | 1.0 | `convert-1.0` | Nguyen Huy Anh | `ffmpeg` installed, via `$ sudo apt-get install ffmpeg` | `FFmpy`
+| `vad` | 1.0 | `vad-1.0` | Pham Van Tung/ Nguyen Huy Anh | None | `scipy`, `numpy`, `soundfile`
 | `diarize` | 8.4.1 | `diarize-8.4.1` | Nguyen Huy Anh | Java 7 (at least) installed. Recommended to install [JDK 7/8](http://www.webupd8.org/2012/09/install-oracle-java-8-in-ubuntu-via-ppa.html) | None
 | `google` | 1 | `google-1` | Nguyen Huy Anh | A valid Google Service Account Key as `google*/key.json`. [How to acquire key](https://support.google.com/googleapi/answer/6158849) | `google-cloud-speech`
 | `lvcsr` | 1701 | `lvcsr-1701` | Xu Haihua/ Nguyen Huy Anh | <ol><li>Install [Kaldi](https://github.com/kaldi-asr/kaldi) with `sequitur` (included in `/tools` after successful installation)</li><li>Include `$KALDI_ROOT` as an environment variable in `~/.bashrc`</li><li>Acquire the models and put into `/lvcsr*/systems` (The Singapore-English LVCSR models by Xu Haihua is the property of [Speech and Language Research Group, School of Computer Science and Engineering, NTU](http://www.ntu.edu.sg/home/aseschng/#pf2), and is **not avalable outside NTU.**)</li></ol> | None
@@ -162,6 +163,7 @@ data/
         raw/            # raw file (.mp3, .mp4, .wav)
         resample/       # output of module resample: resampled file (.wav)
         convert/        # output of module convert: converted video file (.mp4)
+        vad/            # output of module vad: clean speech (.wav)
         diarization/    # output of module diarize: diarization file (.seg)
         transcript/
             google/     # output of module google: Google transcript (.txt, .TextGrid)
@@ -171,6 +173,7 @@ data/
         temp/           # temp files for each module
             google/
             lvcsr/
+            vad/
     file-id-2/
         ...
     ...
