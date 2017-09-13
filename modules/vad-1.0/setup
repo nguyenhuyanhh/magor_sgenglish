@@ -1,0 +1,5 @@
+#!/bin/bash
+# Setup script for vad-1.0
+
+# Install/ upgrade python dependency
+pip2 install --user --upgrade numpy scipy soundfile
