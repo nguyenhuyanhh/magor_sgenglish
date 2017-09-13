@@ -19,6 +19,12 @@
             "diarize-8.4.1",
             "google-1",
             "visualize-1.0"
+        ],
+        "vad": [
+            "resample-1.0",
+            "vad-1.0",
+            "google-1",
+            "visualize-1.0"
         ]
     },
     "file_types": {

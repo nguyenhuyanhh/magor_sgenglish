@@ -3,7 +3,7 @@
     "version": "1.0",
     "requires": [],
     "inputs": [
-        "raw"
+        "resample"
     ],
     "outputs": [
         "vad",

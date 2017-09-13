@@ -9,7 +9,7 @@
     ],
     "inputs": [
         "resample",
-        "diarize"
+        "diarization"
     ],
     "outputs": [
         "transcript"
