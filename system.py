@@ -1,5 +1,7 @@
 """Core system for magor_sgenglish."""
 
+from __future__ import print_function
+
 import argparse
 import json
 import logging
@@ -107,24 +109,22 @@ def manifest_check():
     LOG.info('Valid procedures: %s ', ', '.join(PROCEDURES.keys()))
 
 
-class Process(object):
+class Operation(object):
     """
     Processing tasks.
-    Syntax: Process(filename, procedure_id)
+    Syntax: Operation(filename, procedure_id)
     """
 
     def __init__(self, filename, procedure_id):
-        LOG.info('')
-        LOG.info('')
         self.filename = filename
-        LOG.info('Filename: %s.', self.filename)
         self.file_id = slugify(os.path.splitext(filename)[0])
-        LOG.info('File ID: %s.', self.file_id)
         self.procedure_id = procedure_id
-        LOG.info('Procedure: %s.', self.procedure_id)
 
         # set later during verify()
         self.module_list = None
+
+    def __repr__(self):
+        return 'Operation({}, {})'.format(self.filename, self.procedure_id)
 
     def verify(self):
         """Verify the file type and procedure."""
@@ -163,6 +163,10 @@ class Process(object):
 
     def pipeline(self):
         """Pipeline for processing."""
+        print('\n')
+        LOG.info('Filename: %s.', self.filename)
+        LOG.info('File ID: %s.', self.file_id)
+        LOG.info('Procedure: %s.', self.procedure_id)
         if self.verify():
             self.import_file()
             for mod_id in self.module_list:
@@ -174,16 +178,19 @@ class Process(object):
                      self.filename, self.procedure_id)
 
 
-def workflow(procedure_list):
+def workflow(procedure_list, simulate=False):
     """Processing workflow, using a procedure list."""
     manifest_check()
     for filename in os.listdir(CRAWL_DIR):
-        path_ = os.path.join(CRAWL_DIR, filename)
-        if os.path.isfile(path_):
+        if os.path.isfile(os.path.join(CRAWL_DIR, filename)):
             for procedure in procedure_list:
                 if procedure in PROCEDURES.keys():
-                    Process(filename=filename,
-                            procedure_id=procedure).pipeline()
+                    if simulate:
+                        LOG.debug('%s', Operation(
+                            filename=filename, procedure_id=procedure))
+                    else:
+                        Operation(filename=filename,
+                                  procedure_id=procedure).pipeline()
 
 
 def main():
@@ -195,13 +202,15 @@ def main():
         '-t', '--test', action='store_true', help='just do system checks and exit')
     arg_parser.add_argument(
         '-s', '--setup', action='store_true', help='setup all modules')
+    arg_parser.add_argument('-n', '--simulate', action='store_true',
+                            help='simulate the system run, without processing any file')
     args = arg_parser.parse_args()
     if args.setup:
         setup()
     if args.test:
         manifest_check()
     elif args.procedures:
-        workflow(args.procedures)
+        workflow(args.procedures, args.simulate)
 
 
 if __name__ == '__main__':

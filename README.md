@@ -28,7 +28,7 @@ The system was developed using Python 2.7.12 on Lubuntu 16.04.2 LTS.
 
 ```
 $ python system.py -h
-usage: system.py [-h] [-p [procedure_id [procedure_id ...]]] [-t] [-s]
+usage: system.py [-h] [-p [procedure_id [procedure_id ...]]] [-t] [-s] [-n]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -36,6 +36,7 @@ optional arguments:
                         procedures to pass to workflow
   -t, --test            just do system checks and exit
   -s, --setup           setup all modules
+  -n, --simulate        simulate the system run, without processing any file
 ```
 
 ### Overall repository structure
