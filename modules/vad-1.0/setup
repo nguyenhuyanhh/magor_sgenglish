@@ -1,5 +1,10 @@
 #!/bin/bash
 # Setup script for vad-1.0
 
+# Check for ffmpeg installation
+if ! command -v ffmpeg >/dev/null 2>&1; then
+    sudo apt install ffmpeg
+fi
+
 # Install/ upgrade python dependency
-pip2 install --user --upgrade numpy scipy soundfile
+pip2 install --user --upgrade numpy scipy soundfile ffmpy
