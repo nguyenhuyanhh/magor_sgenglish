@@ -20,6 +20,7 @@ import scipy.fftpack
 import scipy.interpolate
 import scipy.signal
 import soundfile as sf
+from ffmpy import FFmpeg
 
 CUR_DIR = os.path.dirname(os.path.realpath(__file__))
 ROOT_DIR = os.path.dirname(os.path.dirname(CUR_DIR))
@@ -522,8 +523,8 @@ def crosstalk_remover(file_id):
     """Remove crosstalk from multi-channel inputs."""
     # init paths
     working_dir = os.path.join(DATA_DIR, file_id)
-    raw_dir = os.path.join(working_dir, 'raw/')
-    raw_files = sorted(os.listdir(raw_dir))
+    resample_dir = os.path.join(working_dir, 'resample/')
+    resample_files = sorted(os.listdir(resample_dir))
     vad_dir = os.path.join(working_dir, 'vad/')
     if not os.path.exists(vad_dir):
         os.makedirs(vad_dir)
@@ -537,7 +538,8 @@ def crosstalk_remover(file_id):
     # define constants
     tolerance = 0.5  # Merge 2 speech segments that have their gap smaller than this tolerance
     discard_short_seg = 0.5  # Ignore speech segment that smaller than this value
-    audio_dat, sample_rate = sf.read(os.path.join(raw_dir, raw_files[0]))
+    audio_dat, sample_rate = sf.read(
+        os.path.join(resample_dir, resample_files[0]))
     nsample = len(audio_dat)
     LOG.debug('Number of samples: %s', nsample)
     nframe_per_seg = 20000
@@ -548,8 +550,8 @@ def crosstalk_remover(file_id):
 
     # load all inputs into array
     audio = np.empty((0, nsample), dtype=np.double)
-    for file_ in raw_files:
-        audio_dat, sample_rate = sf.read(os.path.join(raw_dir, file_))
+    for file_ in resample_files:
+        audio_dat, sample_rate = sf.read(os.path.join(resample_dir, file_))
         audio = np.vstack([audio, audio_dat])
 
     # perform operations
@@ -561,7 +563,7 @@ def crosstalk_remover(file_id):
                   seg_count, sample_start_frame, sample_end_frame)
         curr_seg_audio = audio[:, sample_start_frame:sample_end_frame]
         spk_id_smooth_refined = gen_final_vad(
-            curr_seg_audio, sample_rate, 'seg' + str(seg_count), len(raw_files), temp_dir)
+            curr_seg_audio, sample_rate, 'seg' + str(seg_count), len(resample_files), temp_dir)
         seg_count = seg_count + 1
         audio[:, sample_start_frame:sample_end_frame] = modify_signal(
             audio[:, sample_start_frame:sample_end_frame], spk_id_smooth_refined, hsize, flength)
@@ -570,15 +572,25 @@ def crosstalk_remover(file_id):
 
     # write output files
     i = 0
-    for file_ in raw_files:
+    out_files = list()
+    for file_ in resample_files:
         out_file = os.path.join(vad_dir, file_)
+        out_files.append(out_file)
         sf.write(out_file, audio[i, :], sample_rate)
         LOG.debug('Written %s', out_file)
         i += 1
 
+    # join output files
+    inputs = {k: None for k in out_files}
+    o_file = os.path.join(vad_dir, '{}.wav'.format(file_id))
+    outputs = {o_file: '-filter_complex amerge -ac 1'}
+    fnull = open(os.devnull)
+    FFmpeg(inputs=inputs, outputs=outputs).run(stdout=fnull, stderr=fnull)
+    LOG.debug('Written %s', o_file)
+
     # write segment files
     i = 1
-    for file_ in raw_files:
+    for file_ in resample_files:
         diarize_file = os.path.join(
             diarize_dir, '{}.seg'.format(os.path.splitext(file_)[0]))
         combine_segment(i, nsample, seg_count - 1, tolerance,

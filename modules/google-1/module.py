@@ -321,15 +321,15 @@ def google(file_id):
                         temp_id, google_txt, google_textgrid)
 
     # case 2: multiple vad files and diarization files
-    elif vad_count == diarize_count >= 1:
+    elif vad_count - diarize_count == 1 and diarize_count > 1:
         LOG.debug('Transcribing multi-channel recording...')
         # make sure the filenames are the same throughout
-        vad_names = sorted([os.path.splitext(i)[0]
-                            for i in os.listdir(vad_dir)])
+        vad_names = sorted([os.path.splitext(i)[0] for i in os.listdir(
+            vad_dir) if i != '{}.wav'.format(file_id)])
         diarize_names = sorted([os.path.splitext(j)[0]
                                 for j in os.listdir(diarize_dir)])
         if vad_names == diarize_names:
-            for i in range(vad_count):
+            for i in range(diarize_count):
                 google_txt = os.path.join(
                     transcribe_dir, '{}.txt'.format(vad_names[i]))
                 google_textgrid = os.path.join(

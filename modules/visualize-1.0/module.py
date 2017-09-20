@@ -184,6 +184,8 @@ def visualize(file_id):
     raw_file = os.path.join(raw_dir, os.listdir(raw_dir)[0])
     resample_dir = os.path.join(working_dir, 'resample/')
     resample_file = os.path.join(resample_dir, '{}.wav'.format(file_id))
+    vad_dir = os.path.join(working_dir, 'vad/')
+    vad_file = os.path.join(vad_dir, '{}.wav'.format(file_id))
     trans_dir = os.path.join(working_dir, 'transcript')
     visualize_dir = os.path.join(working_dir, 'visualize/')
     if not os.path.exists(visualize_dir):
@@ -225,6 +227,8 @@ def visualize(file_id):
         LOG.debug('Video raw file, copied into %s', video_file)
     elif os.path.exists(resample_file):
         video(resample_file, video_file)
+    elif os.path.exists(vad_file):
+        video(vad_file, video_file)
 
 
 if __name__ == '__main__':
