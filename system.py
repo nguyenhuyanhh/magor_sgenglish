@@ -144,12 +144,14 @@ class Operation(object):
             return False
 
         # check for valid file and file_id
-        if self.file_name and (os.path.splitext(self.file_name)[1].lower()) not in VALID_TYPES:
-            LOG.info('%s is of invalid type', self.file_name)
-            return False
-        elif self.file_id and not os.path.exists(os.path.join(DATA_DIR, self.file_id)):
-            LOG.info('%s does not exist', self.file_id)
-            return False
+        if self.file_name:
+            if (os.path.splitext(self.file_name)[1].lower()) not in VALID_TYPES:
+                LOG.info('%s is of invalid type', self.file_name)
+                return False
+        elif self.file_id:
+            if not os.path.exists(os.path.join(DATA_DIR, self.file_id)):
+                LOG.info('%s does not exist', self.file_id)
+                return False
 
         # check for valid procedure
         if self.procedure_id not in PROCEDURES.keys():

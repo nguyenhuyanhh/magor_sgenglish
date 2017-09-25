@@ -30,7 +30,8 @@
     "file_types": {
         "audio": [
             ".wav",
-            ".mp3"
+            ".mp3",
+            ".m4a"
         ],
         "video": [
             ".mp4"
