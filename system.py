@@ -10,7 +10,11 @@ import os
 import shutil
 import subprocess
 
-from slugify import slugify
+try:
+    from slugify import slugify
+except ImportError:
+    subprocess.call(['pip2', 'install', '--user', 'python-slugify'])
+    from slugify import slugify
 
 CUR_DIR = os.path.dirname(os.path.realpath(__file__))
 MODULES_DIR = os.path.join(CUR_DIR, 'modules/')
@@ -47,8 +51,6 @@ MODULES = MANIFEST['modules']
 def setup():
     """Setup all modules."""
     LOG.info('Starting setup...')
-    args = ['pip2', 'install', '--user', 'python-slugify']
-    subprocess.call(args)
     for mod_ in os.listdir(MODULES_DIR):
         mod_dir_ = os.path.join(MODULES_DIR, mod_)
         mod_setup = os.path.join(mod_dir_, 'setup')
