@@ -12,6 +12,7 @@ import json
 import logging
 import os
 import shutil
+import subprocess
 import sys
 from decimal import Decimal
 
@@ -32,6 +33,12 @@ LOG.addHandler(LOG_H)
 LOG.setLevel(logging.DEBUG)
 
 PNG_FILE = os.path.join(CUR_DIR, 'image.png')
+
+
+def check_ffmpeg_v3():
+    """Return True if ffmpeg is v3 and above."""
+    version_str = subprocess.check_output(['ffmpeg', '-version'])
+    return version_str.split('\n')[0].split()[2] >= '3'
 
 
 def tg_to_srt(textgrid_file, textgrid_id, temp_dir):
@@ -166,8 +173,12 @@ def video(audio_file, video_file):
     """Convert an audio file to a black-screened video file."""
     # specify ffmpeg inputs and outputs
     inputs = {audio_file: None, PNG_FILE: '-loop 1'}
-    outputs = {
-        video_file: '-c:v libx264 -c:a libvo_aacenc -b:a 128k -pix_fmt yuv420p -shortest'}
+    if check_ffmpeg_v3():
+        outputs = {
+            video_file: '-c:v libx264 -c:a aac -b:a 128k -pix_fmt yuv420p -shortest'}
+    else:  # add '-strict -2' for ffmpeg 2.8 and below
+        outputs = {
+            video_file: '-c:v libx264 -c:a aac -b:a 128k -pix_fmt yuv420p -shortest -strict -2'}
     # perform operation
     ff_ = FFmpeg(inputs=inputs, outputs=outputs)
     LOG.debug('Command: %s', ff_.cmd)
