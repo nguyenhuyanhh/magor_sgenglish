@@ -198,6 +198,7 @@ def visualize(file_id):
     vad_dir = os.path.join(working_dir, 'vad/')
     vad_file = os.path.join(vad_dir, '{}.wav'.format(file_id))
     trans_dir = os.path.join(working_dir, 'transcript')
+    capgen_dir = os.path.join(working_dir, 'keyframes/')
     visualize_dir = os.path.join(working_dir, 'visualize/')
     if not os.path.exists(visualize_dir):
         os.makedirs(visualize_dir)
@@ -209,8 +210,8 @@ def visualize(file_id):
 
     # write srt
     tmp = list()
-    if os.listdir(trans_dir):
-        # transform all textgrids to srt data structure
+    # transform all transcripts to srt data structure
+    if os.path.exists(trans_dir):
         for trans in os.listdir(trans_dir):
             trans_subdir = os.path.join(trans_dir, trans)
             trans_single = os.path.join(
@@ -223,8 +224,13 @@ def visualize(file_id):
                 for file_ in trans_files:
                     tmp.append(tg_to_srt(os.path.join(
                         trans_subdir, file_), os.path.splitext(file_)[0], temp_dir))
-
-        # merge srt data structures and write
+    # transform captions to srt data structure
+    if os.path.exists(capgen_dir):
+        capgen_textgrid = os.path.join(
+            capgen_dir, '{}.TextGrid'.format(file_id))
+        tmp.append(tg_to_srt(capgen_textgrid, 'capgen', temp_dir))
+    # merge srt data structures and write
+    if tmp:
         write_srt(combine_srt(tmp, temp_dir), srt_file)
     else:
         LOG.debug('No transcripts found for %s', file_id)
