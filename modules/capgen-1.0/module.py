@@ -15,7 +15,7 @@ import os
 import re
 import shutil
 import sys
-from subprocess import PIPE, Popen
+import subprocess
 
 CUR_DIR = os.path.dirname(os.path.realpath(__file__))
 ROOT_DIR = os.path.dirname(os.path.dirname(CUR_DIR))
@@ -33,18 +33,29 @@ LOG.setLevel(logging.DEBUG)
 
 
 def get_length(video_path):
-    """Get the length of a video."""
-    p_args = ['ffprobe', '-v', 'error', '-show_entries', 'format=duration',
-              '-of', 'default=noprint_wrappers=1:nokey=1', video_path]
-    p_open = Popen(p_args, stdout=PIPE)
-    dur_str = p_open.stdout.readline()
-    dur = float(dur_str)
+    """Get the length of a video.
+
+    Arguments:
+        video_path: str - path to video file
+    Returns:
+        dur: float - duration of video in seconds
+    """
+    args = ['ffprobe', '-v', 'error', '-show_entries', 'format=duration',
+            '-of', 'default=noprint_wrappers=1:nokey=1', video_path]
+    dur = float(subprocess.check_output(args))
     LOG.debug('Video length: %s seconds', dur)
     return dur
 
 
 def extract(video_path, temp_dir):
-    """Extract scenes from a video."""
+    """Extract scenes from a video.
+
+    Arguments:
+        video_path: str - path to video file
+        temp_dir: str - path to temp directory
+    Returns:
+        t_arr: list - list of scene start times
+    """
     # complete check using temp file
     # if completed, deserialize to t_arr; else start process
     temp_extract = os.path.join(temp_dir, 'temp_extract.json')
@@ -56,7 +67,7 @@ def extract(video_path, temp_dir):
         p_args = ['ffmpeg', '-hide_banner', '-i', video_path, '-vf',
                   "select=gte(scene\\,0.40),showinfo", '-vsync', '2',
                   '-loglevel', 'info', '-nostats', '-f', 'null', 'null', '-y']
-        p_open = Popen(p_args, stderr=PIPE)
+        p_open = subprocess.Popen(p_args, stderr=subprocess.PIPE)
         expected_id = 0
         t_arr = [0.]
         # [Parsed_showinfo_1 @ 0x2842bc0] n:   0 pts: 456569 pts_time:5.07299 pos:   760122
@@ -64,10 +75,10 @@ def extract(video_path, temp_dir):
             r'\[Parsed_showinfo_1 @ \w+] n: {0,3}(\d+) pts: {0,6}\d+ pts_time:(\d+.\d+|\d+) ')
         while True:
             line = p_open.stderr.readline().rstrip()
-            if line == '':
+            if not line:
                 break
             matches = parser.match(line)
-            if matches is None:
+            if not matches:
                 continue
             expected_id += 1
             groups = matches.groups()
@@ -83,7 +94,15 @@ def extract(video_path, temp_dir):
 
 
 def get_middle(video_path, t_arr, temp_dir):
-    """Get keyframe (middle frame) from each scene."""
+    """Get keyframe (middle frame) from each scene.
+
+    Arguments:
+        video_path: str - path to video file
+        t_arr: list - list of scene start times from extract()
+        temp_dir: str - path to temp directory
+    Returns:
+        frames: dict - frames data structure
+    """
     frames = dict()
 
     # complete check using temp file
@@ -107,7 +126,7 @@ def get_middle(video_path, t_arr, temp_dir):
             img_path = os.path.join(temp_dir, '%05d.png' % next_id)
             p_args = ['ffmpeg', '-ss', '%.6f' % t_middle, '-i', video_path,
                       '-loglevel', 'quiet', '-nostats', '-vframes', '1', '-y', img_path]
-            p_open = Popen(p_args)
+            p_open = subprocess.Popen(p_args)
             ret_code = p_open.wait()
             assert ret_code == 0, 'subprocess %s exit status != 0' % str(
                 p_args)
@@ -122,7 +141,15 @@ def get_middle(video_path, t_arr, temp_dir):
 
 
 def predict(frames, temp_dir, neuraltalk_dir):
-    """Generate caption for each frame."""
+    """Generate caption for each frame.
+
+    Arguments:
+        frames: dict - frames data structure from get_middle()
+        temp_dir: str - path to temp directory
+        neuraltalk_dir: str - path to neuraltalk2 library
+    Returns:
+        frames: dict - frames data structure
+    """
     model_path = os.path.join(
         neuraltalk_dir, 'model/model_id1-501-1448236541.t7_cpu.t7')
     temp_predict = os.path.join(temp_dir, 'temp_predict.json')
@@ -136,13 +163,15 @@ def predict(frames, temp_dir, neuraltalk_dir):
     else:
         # complete check using temp file
         count = len(frames)
-        for key, frame in frames.items():
-            path = frame['path']
+        for key in frames:
+            path = frames[key]['path']
+            path_done = path + '.done'
             tmp = path + '.tmp'
-            if os.path.isfile(path) and os.path.exists(tmp):
-                os.rename(path, path + '.done')
+            if os.path.exists(tmp):
+                if not os.path.exists(path_done):
+                    os.rename(path, path_done)
                 with open(tmp, 'r') as file_:
-                    frame['caption'] = file_.read().strip()
+                    frames[key]['caption'] = file_.read().strip()
                 count -= 1
                 LOG.debug('Previously captioned %s', key)
 
@@ -150,7 +179,8 @@ def predict(frames, temp_dir, neuraltalk_dir):
         if count > 0:
             p_args = ['th', 'eval.lua', '-model', model_path, '-num_images', '-1', '-gpuid',
                       '-1', '-beam_size', '5', '-dump_images', '0', '-image_folder', temp_dir]
-            p_open = Popen(p_args, cwd=neuraltalk_dir, stdout=PIPE)
+            p_open = subprocess.Popen(
+                p_args, cwd=neuraltalk_dir, stdout=subprocess.PIPE)
             # img /.../00001.png: a cat laying on top of a green field
             parser = re.compile(r'img ([^:]+): ([^\n]+)')
             while True:
@@ -172,9 +202,9 @@ def predict(frames, temp_dir, neuraltalk_dir):
         # rename .done files to original
         for key, frame in frames.items():
             path = frame['path']
-            tmp = path + '.done'
-            if os.path.exists(tmp):
-                os.rename(tmp, path)
+            path_done = path + '.done'
+            if os.path.exists(path_done):
+                os.rename(path_done, path)
 
         with open(temp_predict, 'w') as file_out:
             json.dump(frames, file_out, indent=4, sort_keys=True)
@@ -183,7 +213,15 @@ def predict(frames, temp_dir, neuraltalk_dir):
 
 
 def output(frames, file_id, capgen_dir):
-    """Produce the output frames and captions."""
+    """Produce the output frames and captions.
+
+    Arguments:
+        frames: frames data structure from predict()
+        file_id: str - file_id
+        capgen_dir: str - output directory
+    Returns:
+        None
+    """
     capgen_file = os.path.join(capgen_dir, '{}.json'.format(file_id))
     # copy keyframes to folder and write output file
     for key, frame in frames.items():
