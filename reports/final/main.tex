@@ -47,11 +47,12 @@
 \lstset{style=mystyle}
 
 % actual report
+\pagenumbering{roman}
 \begin{document}
-\pagenumbering{gobble}
-\input{cover.tex}
-\input{title.tex}
+\input{cover}
+\input{title}
+\input{front}
 \pagenumbering{arabic}
-\tableofcontents
-% \printbibliography{}
+\input{intro}
+\printbibliography{}
 \end{document}
