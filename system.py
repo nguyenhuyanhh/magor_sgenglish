@@ -190,8 +190,10 @@ class Operation(object):
             exec_ = os.path.join(MODULES_DIR, module_id, 'module.py')
             args = ['python', exec_, self.file_id]
             subprocess.call(args)
+            return True
         except BaseException:
             LOG.info('Error occured.', exc_info=True)
+            return False
 
     def pipeline(self):
         """Pipeline for processing."""
@@ -203,12 +205,16 @@ class Operation(object):
         if self.verify():
             self.import_file()
             for mod_id in self.module_list:
-                self.call(mod_id)
+                if not self.call(mod_id):
+                    # module failure, terminate operation
+                    LOG.info('Pipeline failed for %s at procedure %s, module %s',
+                             self.file_id, self.procedure_id, mod_id)
+                    return
             LOG.info('Pipeline completed for %s using procedure %s',
-                     self.file_name, self.procedure_id)
+                     self.file_id, self.procedure_id)
         else:
             LOG.info('Verification failed for %s using procedure %s',
-                     self.file_name, self.procedure_id)
+                     self.file_id, self.procedure_id)
 
 
 def workflow(file_names, file_ids, procedures, simulate=False):
