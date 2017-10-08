@@ -48,19 +48,6 @@ for mod in os.listdir(MODULES_DIR):
 MODULES = MANIFEST['modules']
 
 
-def setup():
-    """Setup all modules."""
-    LOG.info('Starting setup...')
-    for mod_ in os.listdir(MODULES_DIR):
-        mod_dir_ = os.path.join(MODULES_DIR, mod_)
-        mod_setup = os.path.join(mod_dir_, 'setup')
-        try:
-            args = [mod_setup]
-            subprocess.call(args)
-        except BaseException:
-            LOG.info('Setup failed for module %s', mod_)
-
-
 def manifest_check():
     """
     Check the manifest at startup for consistency.
@@ -217,9 +204,32 @@ class Operation(object):
                      self.file_id, self.procedure_id)
 
 
-def workflow(file_names, file_ids, procedures, simulate=False):
-    """Processing workflow, using a procedure/ list."""
+def setup(args):
+    """Setup all modules."""
+    LOG.info('Starting setup...')
+    if args.all:  # setup all modules
+        for mod_id in os.listdir(MODULES_DIR):
+            try:
+                args = [os.path.join(MODULES_DIR, mod_id, 'setup')]
+                subprocess.call(args)
+                LOG.info('Setup successful for module %s', mod_id)
+            except BaseException:
+                LOG.info('Setup failed for module %s', mod_id)
+    elif args.modules:  # setup specified modules
+        for mod_id in args.modules:
+            try:
+                args = [os.path.join(MODULES_DIR, mod_id, 'setup')]
+                subprocess.call(args)
+                LOG.info('Setup successful for module %s', mod_id)
+            except BaseException:
+                LOG.info('Setup failed for module %s', mod_id)
+
+
+def workflow(file_names, file_ids, procedures, test=False, simulate=False):
+    """Processing workflow."""
     manifest_check()
+    if test:  # manifest check only, no processing
+        return
     valid_procs = [i for i in procedures if i in PROCEDURES.keys()]
     if file_names:
         valid_names = [i for i in file_names if os.path.isfile(
@@ -242,28 +252,42 @@ def workflow(file_names, file_ids, procedures, simulate=False):
             DATA_DIR), procedures=valid_procs, simulate=simulate)
 
 
+def process(args):
+    """Wrapper for workflow."""
+    workflow(args.files, args.ids, args.procedures, args.test, args.simulate)
+
+
 def main():
     """Entry point for the system."""
+    # top-level argument parser
     arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument('-f', '--files', metavar='file_name',
-                            help='file_names to process', nargs='*')
-    arg_parser.add_argument('-i', '--ids', metavar='file_id',
-                            help='file_ids to process', nargs='*')
-    arg_parser.add_argument('-p', '--procedures', metavar='procedure_id',
-                            help='procedures to pass to workflow', nargs='*')
-    arg_parser.add_argument(
+    sub_parsers = arg_parser.add_subparsers()
+
+    # setup sub-command
+    setup_parser = sub_parsers.add_parser('setup', help='setup the system')
+    setup_parser.add_argument(
+        '-m', '--modules', metavar='module_id', help='module_ids to setup', nargs='*')
+    setup_parser.add_argument(
+        '-a', '--all', action='store_true', help='setup all available modules')
+    setup_parser.set_defaults(func=setup)
+
+    # process sub-command
+    process_parser = sub_parsers.add_parser('process', help='process files')
+    process_parser.add_argument(
+        '-f', '--files', metavar='file_name', help='file_names to process', nargs='*')
+    process_parser.add_argument(
+        '-i', '--ids', metavar='file_id', help='file_ids to process', nargs='*')
+    process_parser.add_argument('-p', '--procedures', metavar='procedure_id',
+                                help='procedures to pass to workflow', nargs='*')
+    process_parser.add_argument(
         '-t', '--test', action='store_true', help='just do system checks and exit')
-    arg_parser.add_argument(
-        '-s', '--setup', action='store_true', help='setup all modules')
-    arg_parser.add_argument('-n', '--simulate', action='store_true',
-                            help='simulate the system run, without processing any file')
+    process_parser.add_argument('-n', '--simulate', action='store_true',
+                                help='simulate the system run, without processing any file')
+    process_parser.set_defaults(func=process)
+
+    # parse args and perform operations
     args = arg_parser.parse_args()
-    if args.setup:
-        setup()
-    if args.test:
-        manifest_check()
-    elif args.procedures:
-        workflow(args.files, args.ids, args.procedures, args.simulate)
+    args.func(args)
 
 
 if __name__ == '__main__':
