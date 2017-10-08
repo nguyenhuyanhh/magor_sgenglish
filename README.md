@@ -18,19 +18,30 @@ The system was developed using Python 2.7.12 on Lubuntu 16.04.2 LTS.
 ## Setup
 
 1. Clone this project: `$ git clone https://github.com/nguyenhuyanhh/magor_sgenglish.git --recursive`
-1. Setup the individual module dependencies **automatically** (`$ python system.py --setup`) or **manually** (as prescribed in [Modules](#modules-and-procedures))
+1. Setup the individual module dependencies **automatically** (`$ python system.py setup --all`) or **manually** (as prescribed in [Modules](#modules-and-procedures))
 1. Crawl (put) files into `/crawl`
-1. Run the system: `$ python system.py [options]` (for a list of options, see `$ python system.py -h` or consult [Command-line interface](#command-line-interface) section below).
+1. Run the system: `$ python system.py process [options]` (for a list of options, see `$ python system.py process -h` or consult [Command-line interface](#command-line-interface) section below).
 
 ## Documentation
 
 ### Command-line interface
 
 ```
-$ python system.py -h
-usage: system.py [-h] [-f [file_name [file_name ...]]]
-                 [-i [file_id [file_id ...]]]
-                 [-p [procedure_id [procedure_id ...]]] [-t] [-s] [-n]
+$ python system.py setup -h
+usage: system.py setup [-h] [-m [module_id [module_id ...]]] [-a]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -m [module_id [module_id ...]], --modules [module_id [module_id ...]]
+                        module_ids to setup
+  -a, --all             setup all available modules
+```
+
+```
+$ python system.py process -h
+usage: system.py process [-h] [-f [file_name [file_name ...]]]
+                         [-i [file_id [file_id ...]]]
+                         [-p [procedure_id [procedure_id ...]]] [-t] [-n]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -41,7 +52,6 @@ optional arguments:
   -p [procedure_id [procedure_id ...]], --procedures [procedure_id [procedure_id ...]]
                         procedures to pass to workflow
   -t, --test            just do system checks and exit
-  -s, --setup           setup all modules
   -n, --simulate        simulate the system run, without processing any file
 ```
 
