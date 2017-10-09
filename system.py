@@ -102,10 +102,10 @@ def manifest_check():
 class Operation(object):
     """
     Processing tasks.
-    Syntax: Operation(procedure_id, file_name=None, file_id=None)
+    Syntax: Operation(procedure_id, file_name=None, file_id=None, simulate=False)
     """
 
-    def __init__(self, procedure_id, file_name=None, file_id=None):
+    def __init__(self, procedure_id, file_name=None, file_id=None, simulate=False):
         if not (file_name or file_id):
             self.valid = False  # invalid operation
         elif file_name:
@@ -117,6 +117,7 @@ class Operation(object):
             self.file_id = file_id
             self.valid = True
         self.procedure_id = procedure_id
+        self.simulate = simulate
 
         # set later during verify()
         self.module_list = None
@@ -189,6 +190,9 @@ class Operation(object):
             LOG.info('Filename: %s.', self.file_name)
         LOG.info('File ID: %s.', self.file_id)
         LOG.info('Procedure: %s.', self.procedure_id)
+        if self.simulate:
+            LOG.info('%s', self.__repr__())
+            return
         if self.verify():
             self.import_file()
             for mod_id in self.module_list:
@@ -227,33 +231,41 @@ def setup(args):
 
 def workflow(file_names, file_ids, procedures, test=False, simulate=False):
     """Processing workflow."""
-    manifest_check()
     if test:  # manifest check only, no processing
         return
+
     valid_procs = [i for i in procedures if i in PROCEDURES.keys()]
-    if file_names:
-        valid_names = [i for i in file_names if os.path.isfile(
-            os.path.join(CRAWL_DIR, i))]
-        for i in itertools.product(valid_names, valid_procs):
-            if simulate:
-                LOG.debug('%s', Operation(file_name=i[0], procedure_id=i[1]))
-            else:
-                Operation(file_name=i[0], procedure_id=i[1]).pipeline()
-    if file_ids:
-        valid_ids = [i for i in file_ids if os.path.isdir(
-            os.path.join(DATA_DIR, i))]
-        for i in itertools.product(valid_ids, valid_procs):
-            if simulate:
-                LOG.debug('%s', Operation(file_id=i[0], procedure_id=i[1]))
-            else:
-                Operation(file_id=i[0], procedure_id=i[1]).pipeline()
     if not (file_names or file_ids):  # do everything
         workflow(file_names=os.listdir(CRAWL_DIR), file_ids=os.listdir(
             DATA_DIR), procedures=valid_procs, simulate=simulate)
 
+    # populate valid_names and valid_ids, check for duplicates
+    valid_names = list()
+    valid_ids = list()
+    if file_names:
+        valid_names = [i for i in file_names if os.path.isfile(
+            os.path.join(CRAWL_DIR, i))]
+    if file_ids:
+        tmp_valid_ids = [i for i in file_ids if os.path.isdir(
+            os.path.join(DATA_DIR, i))]
+        # check duplicates (file_ids where the raw file is already inside valid_names)
+        valid_ids = [i for i in tmp_valid_ids if os.listdir(
+            os.path.join(DATA_DIR, i, 'raw/'))[0] not in valid_names]
+
+    # process
+    if valid_names:
+        for i in itertools.product(valid_names, valid_procs):
+            Operation(file_name=i[0], procedure_id=i[1],
+                      simulate=simulate).pipeline()
+    if valid_ids:
+        for i in itertools.product(valid_ids, valid_procs):
+            Operation(file_id=i[0], procedure_id=i[1],
+                      simulate=simulate).pipeline()
+
 
 def process(args):
     """Wrapper for workflow."""
+    manifest_check()
     workflow(args.files, args.ids, args.procedures, args.test, args.simulate)
 
 
