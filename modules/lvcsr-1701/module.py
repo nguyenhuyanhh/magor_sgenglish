@@ -28,8 +28,13 @@ LOG.addHandler(LOG_H)
 LOG.setLevel(logging.DEBUG)
 
 
-def lvcsr(file_id):
-    """Transcribe a file using LVCSR system, into /transcript/lvcsr."""
+def lvcsr(process_id, file_id):
+    """Entry point for module.
+
+    Arguments:
+        process_id: str - process id
+        file_id: str - file_id
+    """
     # init paths
     system_dir = os.path.join(CUR_DIR, 'systems')
     scripts_dir = os.path.join(CUR_DIR, 'scripts/')
@@ -38,10 +43,12 @@ def lvcsr(file_id):
 
     # transcribe
     os.chdir(scripts_dir)
-    args = ['./decoding.sh', system_dir, graph_dir, nnet_dir, file_id]
+    args = ['./decoding.sh', system_dir,
+            graph_dir, nnet_dir, process_id, file_id]
     LOG.debug('Command: %s', ' '.join(args))
     subprocess.call(args)
     os.remove(os.path.join(scripts_dir, 'temp.sh'))  # cleanup
 
+
 if __name__ == '__main__':
-    lvcsr(sys.argv[1])
+    lvcsr(sys.argv[1], sys.argv[2])

@@ -29,40 +29,41 @@ logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s (%(name)s | %(levelname)s) : %(message)s')
 LOG = logging.getLogger('system')
 
-# load manifest
-MANIFEST_FILE = os.path.join(CUR_DIR, 'manifest.json')
-with open(MANIFEST_FILE, 'r') as file_:
-    MANIFEST = json.load(file_)
-PROCEDURES = MANIFEST['procedures']
-FILE_TYPES = MANIFEST['file_types']
-AUDIO_TYPES = [x.decode('utf-8') for x in FILE_TYPES['audio']]
-VIDEO_TYPES = [x.decode('utf-8') for x in FILE_TYPES['video']]
-VALID_TYPES = AUDIO_TYPES + VIDEO_TYPES
-# load modules' manifests
-MANIFEST['modules'] = dict()
-for mod in os.listdir(MODULES_DIR):
-    mod_dir = os.path.join(MODULES_DIR, mod)
-    mod_manifest = os.path.join(mod_dir, 'manifest.json')
-    with open(mod_manifest, 'r') as file_:
-        MANIFEST['modules'][mod] = json.load(file_)
-MODULES = MANIFEST['modules']
 
+class Manifest(object):
+    """
+    Class holding the system and modular manifests for a system instance.
+    Syntax: Manifest(sys_mnft=os.path.join(CUR_DIR, 'manifest.json'))
+    """
 
-def manifest_check():
-    """
-    Check the manifest at startup for consistency.
-    Disable violating modules/ procedures.
-    """
-    LOG.info('Startup manifest checks...')
-    # check modules
-    mod_violate = list()
-    for mod_id, mod_ in MODULES.items():
-        mod_path = os.path.join(MODULES_DIR, mod_id)
-        if not os.path.exists(mod_path):
-            LOG.info('Cannot find module %s at %s', mod_id, mod_path)
-            mod_violate.append(mod_id)
-            continue
-        else:
+    def __init__(self, sys_mnft=os.path.join(CUR_DIR, 'manifest.json')):
+        """Load the system and modular manifests."""
+        LOG.info('Loading manifests...')
+        # system manifest
+        with open(sys_mnft, 'r') as mnft:
+            manifest = json.load(mnft)
+        self.processes = manifest['processes']
+        self.procedures = manifest['procedures']
+        self.valid_types = [x.decode('utf-8') for x in manifest['file_types']
+                            ['audio'] + manifest['file_types']['video']]
+        # modular manifests
+        manifest['modules'] = dict()
+        for mod_id in os.listdir(MODULES_DIR):
+            mod_mnft = os.path.join(MODULES_DIR, mod_id, 'manifest.json')
+            if os.path.exists(mod_mnft):  # check for modular manifest
+                with open(mod_mnft, 'r') as mnft:
+                    manifest['modules'][mod_id] = json.load(mnft)
+        self.modules = manifest['modules']
+        # cache it somewhere
+        with open(os.path.join(CUR_DIR, 'manifest_cache.json'), 'w') as mnft:
+            json.dump(manifest, mnft, sort_keys=True, indent=4)
+
+    def check_modules(self):
+        """Check modular manifests for consistency, disable violating modules."""
+        mod_violate = list()
+        # find violating modules
+        for mod_id, mod_ in self.modules.items():
+            mod_path = os.path.join(MODULES_DIR, mod_id)
             mod_reqs = mod_['requires'] + ['module.py']
             for mod_req in mod_reqs:
                 mod_req_path = os.path.join(mod_path, mod_req)
@@ -71,41 +72,61 @@ def manifest_check():
                              mod_id, mod_req_path)
                     mod_violate.append(mod_id)
                     break
-    for mod_id in mod_violate:
-        del MODULES[mod_id]
-    LOG.info('Valid modules: %s', ', '.join(MODULES.keys()))
+        # disable violating modules
+        for mod_id in mod_violate:
+            del self.modules[mod_id]
+        LOG.info('Valid modules: %s', ', '.join(self.modules.keys()))
 
-    # check procedures
-    proc_violate = list()
-    for proc_id, proc_ in PROCEDURES.items():
-        proc_inputs = set(['raw'])
-        for proc in proc_:
-            if proc not in MODULES.keys():
-                LOG.info('Invalid module %s for procedure %s', proc, proc_id)
-                proc_violate.append(proc_id)
-                break
-            else:
-                tmp_in = set(MODULES[proc]['inputs'])
-                tmp_out = set(MODULES[proc]['outputs'])
-                if not tmp_in.issubset(proc_inputs):
+    def check_processes(self):
+        """Check processes for consistency, disable violating process components."""
+        modules_set = set(self.modules)
+        for process_id in self.processes:
+            # find violating procedures
+            LOG.info('Checking process %s', process_id)
+            proc_violate = list()
+            proc_ = self.processes[process_id]
+            for procedure_id in proc_:
+                # process' procedure not in manifest
+                if procedure_id not in self.procedures.keys():
+                    LOG.info('Procedure %s does not exist', procedure_id)
+                    proc_violate.append(procedure_id)
+                    break
+                # process' procedure's modules are different from procedure definition
+                elif set(proc_[procedure_id].keys()) != set(self.procedures[procedure_id]):
                     LOG.info(
-                        'Invalid requirements for module %s in procedure %s', proc, proc_id)
-                    proc_violate.append(proc_id)
+                        'Not all modules in procedure %s are defined', procedure_id)
+                    proc_violate.append(procedure_id)
                     break
                 else:
-                    proc_inputs = proc_inputs.union(tmp_out)
-    for proc_id in proc_violate:
-        del PROCEDURES[proc_id]
-    LOG.info('Valid procedures: %s ', ', '.join(PROCEDURES.keys()))
+                    modules = ['{}-{}'.format(mod, ver)
+                               for mod, ver in proc_[procedure_id].items()]
+                    # some procedure's modules not in manifest
+                    if not set(modules).issubset(modules_set):
+                        LOG.info('Modules %s does not exist', ', '.join(
+                            set(modules).difference(modules_set)))
+                        proc_violate.append(procedure_id)
+            # disable violating procedures
+            for procedure_id in proc_violate:
+                del self.processes[process_id][procedure_id]
+            LOG.info('Valid procedures: %s', ', '.join(
+                self.processes[process_id].keys()))
+
+    def check_all(self):
+        """Wrapper for all manifest checks."""
+        LOG.info('Startup manifest checks...')
+        self.check_modules()
+        self.check_processes()
 
 
 class Operation(object):
     """
     Processing tasks.
-    Syntax: Operation(procedure_id, file_name=None, file_id=None, simulate=False)
+    Syntax: Operation(manifest, process_id, procedure_id,
+                      file_name=None, file_id=None, simulate=False)
     """
 
-    def __init__(self, procedure_id, file_name=None, file_id=None, simulate=False):
+    def __init__(self, manifest, process_id, procedure_id,
+                 file_name=None, file_id=None, simulate=False):
         if not (file_name or file_id):
             self.valid = False  # invalid operation
         elif file_name:
@@ -116,47 +137,56 @@ class Operation(object):
             self.file_name = None
             self.file_id = file_id
             self.valid = True
+        self.manifest = manifest
+        self.process_id = process_id
         self.procedure_id = procedure_id
         self.simulate = simulate
+        self.working_dir = os.path.join(
+            DATA_DIR, self.process_id, self.file_id)
 
         # set later during verify()
         self.module_list = None
 
     def __repr__(self):
-        result = 'Operation(file_name={}, file_id={}, procedure_id={})'.format(
-            self.file_name, self.file_id, self.procedure_id)
+        result = 'Operation(process_id={}, procedure_id={}, file_name={}, file_id={})'.format(
+            self.process_id, self.procedure_id, self.file_name, self.file_id)
         return result
 
     def verify(self):
-        """Verify the files and procedure."""
+        """Verify the operation."""
         # check for valid operation
         if not self.valid:
             return False
 
-        # check for valid file and file_id
+        # check for valid file_name and file_id
         if self.file_name:
-            if (os.path.splitext(self.file_name)[1].lower()) not in VALID_TYPES:
+            if (os.path.splitext(self.file_name)[1].lower()) not in self.manifest.valid_types:
                 LOG.info('%s is of invalid type', self.file_name)
                 return False
         elif self.file_id:
-            if not os.path.exists(os.path.join(DATA_DIR, self.file_id)):
+            if not os.path.exists(self.working_dir):
                 LOG.info('%s does not exist', self.file_id)
                 return False
 
-        # check for valid procedure
-        if self.procedure_id not in PROCEDURES.keys():
+        # check for valid process & procedure
+        if self.process_id not in self.manifest.processes.keys():
+            LOG.info('Process %s does not exist', self.process_id)
+            return False
+        elif self.procedure_id not in self.manifest.processes[self.process_id].keys():
             LOG.info('Procedure %s does not exist', self.procedure_id)
             return False
 
         # if all is well, set module list
-        self.module_list = PROCEDURES[self.procedure_id]
+        self.module_list = [
+            '{}-{}'.format(mod,
+                           self.manifest.processes[self.process_id][self.procedure_id][mod])
+            for mod in self.manifest.procedures[self.procedure_id]]
         return True
 
     def import_file(self):
         """Import the file into /data."""
         # init paths
-        working_dir = os.path.join(DATA_DIR, self.file_id)
-        raw_dir = os.path.join(working_dir, 'raw/')
+        raw_dir = os.path.join(self.working_dir, 'raw/')
         if not os.path.exists(raw_dir):
             os.makedirs(raw_dir)
 
@@ -176,7 +206,7 @@ class Operation(object):
         """Atom instruction to call a module."""
         try:
             exec_ = os.path.join(MODULES_DIR, module_id, 'module.py')
-            args = ['python', exec_, self.file_id]
+            args = ['python', exec_, self.process_id, self.file_id]
             subprocess.call(args)
             return True
         except BaseException:
@@ -185,14 +215,15 @@ class Operation(object):
 
     def pipeline(self):
         """Pipeline for processing."""
-        print('\n')
-        if self.file_name:
-            LOG.info('Filename: %s.', self.file_name)
-        LOG.info('File ID: %s.', self.file_id)
-        LOG.info('Procedure: %s.', self.procedure_id)
-        if self.simulate:
+        if self.simulate:  # just print and return
             LOG.info('%s', self.__repr__())
             return
+        print('\n')
+        LOG.info('Process: %s', self.process_id)
+        LOG.info('Procedure: %s', self.procedure_id)
+        if self.file_name:
+            LOG.info('Filename: %s', self.file_name)
+        LOG.info('File ID: %s', self.file_id)
         if self.verify():
             self.import_file()
             for mod_id in self.module_list:
@@ -229,15 +260,26 @@ def setup(args):
                 LOG.info('Setup failed for module %s', mod_id)
 
 
-def workflow(file_names, file_ids, procedures, test=False, simulate=False):
+def workflow(manifest, process_id, procedures, file_names, file_ids,
+             test=False, simulate=False):
     """Processing workflow."""
     if test:  # manifest check only, no processing
         return
 
-    valid_procs = [i for i in procedures if i in PROCEDURES.keys()]
+    # init path
+    if process_id not in manifest.processes.keys():
+        LOG.info('Process %s does not exist', process_id)
+        return
+    else:
+        process_dir = os.path.join(DATA_DIR, process_id)
+        if not os.path.exists(process_dir):
+            os.makedirs(process_dir)
+
+    valid_procs = [
+        i for i in procedures if i in manifest.processes[process_id].keys()]
     if not (file_names or file_ids):  # do everything
-        workflow(file_names=os.listdir(CRAWL_DIR), file_ids=os.listdir(
-            DATA_DIR), procedures=valid_procs, simulate=simulate)
+        workflow(manifest, process_id, valid_procs, file_names=os.listdir(
+            CRAWL_DIR), file_ids=os.listdir(process_dir), simulate=simulate)
 
     # populate valid_names and valid_ids, check for duplicates
     valid_names = list()
@@ -247,26 +289,28 @@ def workflow(file_names, file_ids, procedures, test=False, simulate=False):
             os.path.join(CRAWL_DIR, i))]
     if file_ids:
         tmp_valid_ids = [i for i in file_ids if os.path.isdir(
-            os.path.join(DATA_DIR, i))]
-        # check duplicates (file_ids where the raw file is already inside valid_names)
+            os.path.join(process_dir, i))]
+        # check duplicates (file_ids where raw file is already inside valid_names)
         valid_ids = [i for i in tmp_valid_ids if os.listdir(
-            os.path.join(DATA_DIR, i, 'raw/'))[0] not in valid_names]
+            os.path.join(process_dir, i, 'raw/'))[0] not in valid_names]
 
     # process
     if valid_names:
         for i in itertools.product(valid_names, valid_procs):
-            Operation(file_name=i[0], procedure_id=i[1],
-                      simulate=simulate).pipeline()
+            Operation(manifest, process_id,
+                      i[1], file_name=i[0], simulate=simulate).pipeline()
     if valid_ids:
         for i in itertools.product(valid_ids, valid_procs):
-            Operation(file_id=i[0], procedure_id=i[1],
-                      simulate=simulate).pipeline()
+            Operation(manifest, process_id,
+                      i[1], file_id=i[0], simulate=simulate).pipeline()
 
 
 def process(args):
     """Wrapper for workflow."""
-    manifest_check()
-    workflow(args.files, args.ids, args.procedures, args.test, args.simulate)
+    manifest = Manifest()
+    manifest.check_all()
+    workflow(manifest, args.process_id, args.procedures,
+             args.files, args.ids, args.test, args.simulate)
 
 
 def main():
@@ -286,15 +330,18 @@ def main():
     # process sub-command
     process_parser = sub_parsers.add_parser('process', help='process files')
     process_parser.add_argument(
+        'process_id', help='process_id for this run', nargs='?')
+    process_parser.add_argument('-p', '--procedures', metavar='procedure_id',
+                                help='procedures to run', nargs='*')
+    process_parser.add_argument(
         '-f', '--files', metavar='file_name', help='file_names to process', nargs='*')
     process_parser.add_argument(
         '-i', '--ids', metavar='file_id', help='file_ids to process', nargs='*')
-    process_parser.add_argument('-p', '--procedures', metavar='procedure_id',
-                                help='procedures to pass to workflow', nargs='*')
+
     process_parser.add_argument(
         '-t', '--test', action='store_true', help='just do system checks and exit')
     process_parser.add_argument('-n', '--simulate', action='store_true',
-                                help='simulate the system run, without processing any file')
+                                help='simulate the run, without processing any file')
     process_parser.set_defaults(func=process)
 
     # parse args and perform operations

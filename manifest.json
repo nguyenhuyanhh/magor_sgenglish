@@ -1,30 +1,60 @@
 {
+    "processes": {
+        "process-1": {
+            "google": {
+                "resample": "1.0",
+                "diarize": "8.4.1",
+                "google": "1"
+            },
+            "lvcsr": {
+                "resample": "1.0",
+                "diarize": "8.4.1",
+                "lvcsr": "1701"
+            },
+            "capgen": {
+                "convert": "1.0",
+                "capgen": "1.0"
+            },
+            "visualize": {
+                "resample": "1.0",
+                "diarize": "8.4.1",
+                "google": "1",
+                "visualize": "1.0"
+            },
+            "vad": {
+                "resample": "1.0",
+                "vad": "1.0",
+                "google": "1",
+                "visualize": "1.0"
+            }
+        }
+    },
     "procedures": {
         "google": [
-            "resample-1.0",
-            "diarize-8.4.1",
-            "google-1"
+            "resample",
+            "diarize",
+            "google"
         ],
         "lvcsr": [
-            "resample-1.0",
-            "diarize-8.4.1",
-            "lvcsr-1701"
+            "resample",
+            "diarize",
+            "lvcsr"
         ],
         "capgen": [
-            "convert-1.0",
-            "capgen-1.0"
+            "convert",
+            "capgen"
         ],
         "visualize": [
-            "resample-1.0",
-            "diarize-8.4.1",
-            "google-1",
-            "visualize-1.0"
+            "resample",
+            "diarize",
+            "google",
+            "visualize"
         ],
         "vad": [
-            "resample-1.0",
-            "vad-1.0",
-            "google-1",
-            "visualize-1.0"
+            "resample",
+            "vad",
+            "google",
+            "visualize"
         ]
     },
     "file_types": {

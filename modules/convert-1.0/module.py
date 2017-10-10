@@ -30,10 +30,10 @@ LOG.addHandler(LOG_H)
 LOG.setLevel(logging.DEBUG)
 
 
-def convert(file_id):
+def convert(process_id, file_id):
     """Convert a file_id."""
     # init paths
-    working_dir = os.path.join(DATA_DIR, file_id)
+    working_dir = os.path.join(DATA_DIR, process_id, file_id)
     raw_dir = os.path.join(working_dir, 'raw/')
     convert_dir = os.path.join(working_dir, 'convert/')
 
@@ -57,5 +57,6 @@ def convert(file_id):
             ffmp.run(stdout=fnull, stderr=fnull)  # silent output
             LOG.debug('Converted %s to %s', video_in, video_out)
 
+
 if __name__ == '__main__':
-    convert(sys.argv[1])
+    convert(sys.argv[1], sys.argv[2])

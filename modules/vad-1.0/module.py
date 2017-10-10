@@ -519,10 +519,17 @@ def combine_segment(channel_id, nsamples, nsegs, tolerance, discard_short_seg,
         channel_id)), full_sample_based_vad, fmt='%.5f')
 
 
-def crosstalk_remover(file_id):
-    """Remove crosstalk from multi-channel inputs."""
+def crosstalk_remover(process_id, file_id):
+    """Entry point for module.
+
+    Remove crosstalk from multi-channel inputs.
+
+    Arguments:
+        process_id: str - process id
+        file_id: str - file id
+    """
     # init paths
-    working_dir = os.path.join(DATA_DIR, file_id)
+    working_dir = os.path.join(DATA_DIR, process_id, file_id)
     resample_dir = os.path.join(working_dir, 'resample/')
     resample_files = sorted(os.listdir(resample_dir))
     vad_dir = os.path.join(working_dir, 'vad/')
@@ -599,4 +606,4 @@ def crosstalk_remover(file_id):
 
 
 if __name__ == '__main__':
-    crosstalk_remover(sys.argv[1])
+    crosstalk_remover(sys.argv[1], sys.argv[2])

@@ -2,7 +2,7 @@
 
 This is in development.
 
-The final system takes in audio/ video files as input, then performs a number of processing tasks in a pipeline - sampling, diarization, transcription using Google Speech APIs/ in-house LVCSR system, keyframe captioning, etc.
+The final system takes in audio/ video files (both single files and multi-channel recordings) as input, then performs a number of processing tasks in a pipeline - sampling, diarization, transcription using Google Speech APIs/ in-house LVCSR system, keyframe captioning, visualization etc.
 
 The repository includes the core system, as well as a collection of reference modules for the above-mentioned tasks.
 
@@ -39,20 +39,24 @@ optional arguments:
 
 ```
 $ python system.py process -h
-usage: system.py process [-h] [-f [file_name [file_name ...]]]
-                         [-i [file_id [file_id ...]]]
-                         [-p [procedure_id [procedure_id ...]]] [-t] [-n]
+usage: system.py process [-h] [-p [procedure_id [procedure_id ...]]]
+                         [-f [file_name [file_name ...]]]
+                         [-i [file_id [file_id ...]]] [-t] [-n]
+                         [process_id]
+
+positional arguments:
+  process_id            process_id for this run
 
 optional arguments:
   -h, --help            show this help message and exit
+  -p [procedure_id [procedure_id ...]], --procedures [procedure_id [procedure_id ...]]
+                        procedures to run
   -f [file_name [file_name ...]], --files [file_name [file_name ...]]
                         file_names to process
   -i [file_id [file_id ...]], --ids [file_id [file_id ...]]
                         file_ids to process
-  -p [procedure_id [procedure_id ...]], --procedures [procedure_id [procedure_id ...]]
-                        procedures to pass to workflow
   -t, --test            just do system checks and exit
-  -n, --simulate        simulate the system run, without processing any file
+  -n, --simulate        simulate the run, without processing any file
 ```
 
 ### Overall repository structure
@@ -74,12 +78,21 @@ An example would be the included `manifest.json`.
 
 ```json
 {
+    "processes": {
+        "process-id-1": {
+            "procedure-id-1": {
+                "resample": "1.0",
+                "diarize": "8.4.1",
+                "google": "1"
+            },
+            "procedure-id-2":{}
+        }
+    },
     "procedures":{
         "procedure-id-1":[
-            "raw*",
-            "resample*",
-            "diarize*",
-            "google*"
+            "resample",
+            "diarize",
+            "google"
         ],
         "procedure-id-2":[]
     },
@@ -95,21 +108,19 @@ An example would be the included `manifest.json`.
 }
 ```
 
-Field types and value constraints:
+All fields in the manifest file are of type `str`.
 
-| Field | Type | Constraint
-| --- | --- | ---
-| `procedure-id` | `list(str)` | List of modules in the procedure
-| `audio` | `list(str)` | List of accepted audio extensions (must have ".")
-| `video` | `list(str)` | List of accepted video extensions (must have ".")
+The manifest is initiated as an instance of the class `Manifest`, and manifest integrity checks would be executed before processing any file.
 
-The method `manifest_check()` called at system start-up would check the manifest for consistency with the actual system, and disable violating modules/ procedures.
+### Modules, procedures and processes
 
-### Modules and procedures
+Each module in the system performs a function, which takes input files from certain subfolders under the working folder (`data/process-id/file-id`) and produce output files in other subfolders under the same working folder. Modules could be pipelined into procedures, if their input and output requirements are linked.
 
-Each module in the system performs a function, which takes input files from certain subfolders under `data/file-id` and produce output files in other subfolders under `data/file-id`. Modules could be pipelined into procedures, if their input and output requirements are linked.
+Processes are a certain configuration of procedures, each procedure having modules locked to a certain version. The same procedure when applied to different processes might have different versions; this enables versioning of module outputs.
 
 #### Module file structure
+
+The `module-id` (module folder name) must be a composition of the module name and its version (in the form `{name}-{version}`).
 
 ```
 modules/
@@ -148,8 +159,8 @@ Field types and value constraints:
 | `name` | `str` | 
 | `version` | `str` |
 | `requires` | `list(str)` | Module dependencies (required paths under `/modules/module-id`)
-| `inputs` | `list(str)` | Module inputs (subfolders under `/data/file-id`)
-| `outputs` | `list(str)` | Module outputs (subfolders under `/data/file-id`)
+| `inputs` | `list(str)` | Module inputs (subfolders under `/data/process-id/file-id`)
+| `outputs` | `list(str)` | Module outputs (subfolders under `/data/process-id/file-id`)
 
 #### Included modules and procedures
 
@@ -168,29 +179,38 @@ The modules included within this repository are:
 
 Most of the setup procedures are automated into `setup` scripts.
 
-Three procedures are included with this repository: `google` to transcribe audios using Google Cloud Speech API, `lvcsr` to transcribe audios using in-house LVCSR system, and `capgen` to generate caption for keyframes in videos. 
+Five procedures are included with this repository:
+
+| Procedure | Description
+| --- | ---
+| `google` | Transcribe audios using Google Cloud Speech API
+| `lvcsr` | Transcribe audios using in-house LVCSR system
+| `capgen` | Generate caption for video keyframes in videos
+| `vad` | Transcribe multi-channel recordings
+| `visualize` | Visualize transcriptions and captions
 
 ### Data folder structure
 
-The `/data` folder structure allows independent module inputs/ outputs to be stored in their respective folders. Each file is identifiable by `file_id`, a slug of the original file name.
+The `/data` folder structure allows independent module inputs/ outputs to be stored in their respective folders. Each record is identifiable by `process_id`, the process used, and `file_id`, a slug of the original file name.
 
 ```
 data/
-    file-id-1/
-        raw/            # raw file (.mp3, .mp4, .wav)
-        resample/       # output of module resample: resampled file (.wav)
-        convert/        # output of module convert: converted video file (.mp4)
-        vad/            # output of module vad: clean speech (.wav)
-        diarization/    # output of module diarize: diarization file (.seg)
-        transcript/
-            google/     # output of module google: Google transcript (.txt, .TextGrid)
-            lvcsr/      # output of module lvcsr: LVCSR transcript (.stm, .ctm, .csv, .TextGrid)
-        keyframes/      # output of module capgen: key frames and captions (.png, .json)
-        visualize/      # output of module visualize: video (.mp4) and subtitles (.srt)
-        temp/           # temp files for each module
-            google/
-            lvcsr/
-            vad/
+    process-id-1/
+        file-id-1/
+            raw/            # raw file (.m4a, .mp3, .mp4, .wav)
+            resample/       # output of module resample
+            convert/        # output of module convert
+            vad/            # output of module vad
+            diarization/    # output of module diarize
+            transcript/
+                google/     # output of module google
+                lvcsr/      # output of module lvcsr
+            keyframes/      # output of module capgen
+            visualize/      # output of module visualize
+            temp/           # temp files for each module
+                google/
+                lvcsr/
+                vad/
     file-id-2/
         ...
     ...

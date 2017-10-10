@@ -48,14 +48,15 @@ def resample_audio(audio_in, audio_out):
         LOG.debug('Resampled %s to %s', audio_in, audio_out)
 
 
-def resample(file_id):
-    """Resample a file_id.
+def resample(process_id, file_id):
+    """Entry point for module.
 
     Arguments:
+        process_id: str - process id
         file_id: str - file id
     """
     # init paths
-    working_dir = os.path.join(DATA_DIR, file_id)
+    working_dir = os.path.join(DATA_DIR, process_id, file_id)
     raw_dir = os.path.join(working_dir, 'raw/')
     raw_files = os.listdir(raw_dir)
     resample_dir = os.path.join(working_dir, 'resample/')
@@ -77,4 +78,4 @@ def resample(file_id):
 
 
 if __name__ == '__main__':
-    resample(sys.argv[1])
+    resample(sys.argv[1], sys.argv[2])

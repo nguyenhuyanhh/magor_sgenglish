@@ -1,17 +1,14 @@
+# VSCode
+.vscode
+
 # Python specifics
 .py[cod]
 __pycache__/
-
-# Auth
-modules/google*/key.json
 
 # Data
 data*/
 crawl*/
 *.log
 
-# Singapore English systems
-modules/lvcsr*/systems
-
-# VSCode
-.vscode
+# Manifest cache
+manifest_cache.json
