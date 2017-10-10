@@ -5,16 +5,10 @@
 .py[cod]
 __pycache__/
 
-# Auth
-modules/google*/key.json
-
 # Data
 data*/
 crawl*/
 *.log
-
-# Singapore English systems
-modules/lvcsr*/systems
 
 # Manifest cache
 manifest_cache.json
