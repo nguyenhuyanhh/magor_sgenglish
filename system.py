@@ -215,15 +215,15 @@ class Operation(object):
 
     def pipeline(self):
         """Pipeline for processing."""
+        if self.simulate:  # just print and return
+            LOG.info('%s', self.__repr__())
+            return
         print('\n')
         LOG.info('Process: %s', self.process_id)
         LOG.info('Procedure: %s', self.procedure_id)
         if self.file_name:
             LOG.info('Filename: %s', self.file_name)
         LOG.info('File ID: %s', self.file_id)
-        if self.simulate:
-            LOG.info('%s', self.__repr__())
-            return
         if self.verify():
             self.import_file()
             for mod_id in self.module_list:
