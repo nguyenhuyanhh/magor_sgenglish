@@ -159,8 +159,8 @@ Field types and value constraints:
 | `name` | `str` | 
 | `version` | `str` |
 | `requires` | `list(str)` | Module dependencies (required paths under `/modules/module-id`)
-| `inputs` | `list(str)` | Module inputs (subfolders under `/data/file-id`)
-| `outputs` | `list(str)` | Module outputs (subfolders under `/data/file-id`)
+| `inputs` | `list(str)` | Module inputs (subfolders under `/data/process-id/file-id`)
+| `outputs` | `list(str)` | Module outputs (subfolders under `/data/process-id/file-id`)
 
 #### Included modules and procedures
 
