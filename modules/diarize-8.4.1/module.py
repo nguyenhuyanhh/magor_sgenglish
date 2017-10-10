@@ -28,10 +28,10 @@ LOG.addHandler(LOG_H)
 LOG.setLevel(logging.DEBUG)
 
 
-def diarize(file_id):
+def diarize(process_id, file_id):
     """Diarize a file using LIUM, into /diarization."""
     # init paths
-    working_dir = os.path.join(DATA_DIR, file_id)
+    working_dir = os.path.join(DATA_DIR, process_id, file_id)
     resample_dir = os.path.join(working_dir, 'resample/')
     diarize_dir = os.path.join(working_dir, 'diarization/')
 
@@ -52,4 +52,4 @@ def diarize(file_id):
 
 
 if __name__ == '__main__':
-    diarize(sys.argv[1])
+    diarize(sys.argv[1], sys.argv[2])

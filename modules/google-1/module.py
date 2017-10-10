@@ -267,10 +267,10 @@ def trans_to_tg(diarize_dict, audio_file, temp_dir, temp_id, google_txt, google_
         LOG.debug('Written %s', google_textgrid)
 
 
-def google(file_id):
+def google(process_id, file_id):
     """Transcribe a file_id using Google Cloud Speech API."""
     # init paths
-    working_dir = os.path.join(DATA_DIR, file_id)
+    working_dir = os.path.join(DATA_DIR, process_id, file_id)
     resample_dir = os.path.join(working_dir, 'resample/')
     try:
         resample_count = len(os.listdir(resample_dir))
@@ -357,4 +357,4 @@ def google(file_id):
 
 
 if __name__ == '__main__':
-    google(sys.argv[1])
+    google(sys.argv[1], sys.argv[2])

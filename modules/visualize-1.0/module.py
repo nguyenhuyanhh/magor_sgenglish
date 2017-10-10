@@ -187,10 +187,15 @@ def video(audio_file, video_file):
     LOG.debug('Converted %s into video file %s', audio_file, video_file)
 
 
-def visualize(file_id):
-    """Visualize a file_id."""
+def visualize(process_id, file_id):
+    """Entry point for module.
+
+    Arguments:
+        process_id: str - process id
+        file_id: str - file id
+    """
     # init paths
-    working_dir = os.path.join(DATA_DIR, file_id)
+    working_dir = os.path.join(DATA_DIR, process_id, file_id)
     raw_dir = os.path.join(working_dir, 'raw/')
     raw_file = os.path.join(raw_dir, os.listdir(raw_dir)[0])
     resample_dir = os.path.join(working_dir, 'resample/')
@@ -249,4 +254,4 @@ def visualize(file_id):
 
 
 if __name__ == '__main__':
-    visualize(sys.argv[1])
+    visualize(sys.argv[1], sys.argv[2])

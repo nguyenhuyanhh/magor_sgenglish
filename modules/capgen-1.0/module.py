@@ -283,10 +283,10 @@ def output_to_tg(frames, video_length, capgen_textgrid):
                 frame_cnt += 1
 
 
-def capgen(file_id):
+def capgen(process_id, file_id):
     """Generate caption for file_id."""
     # init paths
-    working_dir = os.path.join(DATA_DIR, file_id)
+    working_dir = os.path.join(DATA_DIR, process_id, file_id)
     convert_dir = os.path.join(working_dir, 'convert/')
     convert_file = os.path.join(convert_dir, '{}.mp4'.format(file_id))
     temp_dir = os.path.join(working_dir, 'temp/capgen')
@@ -312,4 +312,4 @@ def capgen(file_id):
 
 
 if __name__ == '__main__':
-    capgen(sys.argv[1])
+    capgen(sys.argv[1], sys.argv[2])
