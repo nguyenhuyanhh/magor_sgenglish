@@ -5,19 +5,49 @@
 With the advent of computing, a large amount of data is being created
 everyday~\cite{emc}.
 Raw data exists in many forms --- numbers, texts, images, audio, video, etc.,
-most of it unstructured or semi-sturctured~\cite{emc},
-and requires processing in order to derive meaning. For multimedia data (audio
-and video), a textual representation of the data is desirable as a pre-cursor
-to further processing. The process of converting speech to text is called
-transcription~\cite{transcribe-mw}; the resultant transcript could be utilised
-in other tasks --- archival, indexing and search, concept and language
-understanding, etc.
+most of it unstructured or semi-structured~\cite{emc},
+and requires processing in order to derive meaning. Of particular interest for
+research purposes are multimedia data (audio and video), specifically
+multimedia data of the following three prevalent types:
+
+\begin{itemize}
+    \item Single-file audio --- radio recordings, interviews and talk shows
+    \item Single-file video --- televised news and speeches
+    \item Multi-channel audio --- recorded conversations using multiple
+    microphones
+\end{itemize}
+
+A general pipeline to process and index multimedia data would look like this:
+
+\begin{figure}[h]
+\begin{center}
+    \includegraphics[width=\textwidth]{../images/pipeline.png}
+    \caption{Multimedia processing pipeline}
+\end{center}
+\end{figure}
+
+The multimedia files are first crawled from a source (website or database) by
+means of a crawler, or created using recording instruments. These files would
+then go through a pipeline of processing tasks to extract useful information
+for indexing, storage and visualization. The data visualizations could be
+indexed and stored together with the processing outputs. 
+
+For multimedia data, a textual representation of the data is often desirable
+as a precursor to further processing. Two processes are capable of converting
+multimedia into text:
+
+\begin{itemize}
+    \item Transcription --- the process of converting speech to
+    text~\cite{transcribe-mw}
+    \item Captioning --- the process of converting image to description
+    of such image~\cite{caption}
+\end{itemize}
 
 Transcription is a well-defined pipeline:
 
 \begin{figure}[h]
 \begin{center}
-    \includegraphics[width=0.9\textwidth]{../images/pipeline.png}
+    \includegraphics[width=\textwidth]{../images/pipeline_transcribe.png}
     \caption{Transcription processing pipeline}
 \end{center}
 \end{figure}
