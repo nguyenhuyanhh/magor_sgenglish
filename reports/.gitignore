@@ -1,10 +1,13 @@
 # LaTeX temp files
+*.acn
 *.aux
 *.bbl
 *.bcf
 *.blg
 *.fdb_latexmk
 *.fls
+*.glo
+*.glsdefs
 *.log
 *.lof
 *.lot
@@ -13,3 +16,4 @@
 *.run.xml
 *.synctex.gz
 *.toc
+*.xdy

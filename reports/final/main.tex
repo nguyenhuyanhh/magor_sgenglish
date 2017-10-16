@@ -1,28 +1,27 @@
 \documentclass[11pt]{report}
 
 % report format
+\usepackage[hidelinks]{hyperref}
 \usepackage[utf8]{inputenc}
 \usepackage[a4paper, top=3cm, bottom=3cm, left=3.5cm, right=3cm]{geometry}
 \usepackage{setspace}
 \onehalfspacing{}
-
-\usepackage[hidelinks]{hyperref}
-\usepackage{graphicx}
-\usepackage{tabularx}
-\usepackage{listings}
-\usepackage{color}
 \usepackage{chngcntr}
 \counterwithout{footnote}{chapter}
+\usepackage{fancyhdr}
+\fancyhead[L]{\leftmark}
+\fancyhead[C,R]{}
+\usepackage{graphicx}
+\usepackage{tabu}
+\tabulinesep=_4pt
 
+% reference
 \usepackage[style=ieee]{biblatex}
 \addbibresource{../sources.bib}
 
-% \usepackage{float}
-% \usepackage{multirow}
-% \usepackage{booktabs}
-% \usepackage{amssymb}
-
-% some configurations for the listings package
+% code listings
+\usepackage{listings}
+\usepackage{color}
 \definecolor{codegreen}{rgb}{0,0.6,0}
 \definecolor{codegray}{rgb}{0.5,0.5,0.5}
 \definecolor{codepurple}{rgb}{0.58,0,0.82}
@@ -47,12 +46,14 @@
 \lstset{style=mystyle}
 
 % actual report
-\pagenumbering{roman}
+\pagenumbering{gobble}
 \begin{document}
 \input{cover}
 \input{title}
+\pagenumbering{roman}
 \input{front}
 \pagenumbering{arabic}
+\pagestyle{fancy}
 \input{intro}
 \printbibliography{}
 \end{document}
