@@ -2,7 +2,36 @@
 \phantomsection{}
 \addcontentsline{toc}{chapter}{Abstract}
 \chapter*{Abstract}
-Hello
+With the advent of computing, a huge amount of data is being created everyday.
+Most of the data are unstructured or semi-structured, and needs to be processed
+in order to derive meaning. For multimedia data (audio and video), a textual
+representation is often desirable, and there are two ways to obtain such a
+representation --- transcription and captioning. The two processes are
+well-defined pipelines of multiple components.
+
+However, for each component there are many existing implementations, but each
+having differentiated input and output formats, which makes it difficult to
+integrate to a pipeline. The pipeline itself is difficult to maintain, with
+any change/ upgrade to any component having a potential to break the pipeline.
+Furthermore, as the pipeline changes there is no mechanism to keep track of
+output versions; this capability is important for research purposes.
+
+This project proposes an integrated processing system performing transcription
+and captioning on a wide range of audio and video inputs --- single-file audio/
+video as well as multi-channel audio recordings. The project aims to design
+a system architecture that allows for modularity and extensibility, keeps track
+of different component and output versions and performs robustly under many
+scenarios. The project incorporates Python ports of existing modules from various
+efforts of the Speech and Language Research Group in the School of Computer
+Science and Engineering, as well as new Python modules to realize the processing
+pipeline --- transcription, captioning and visualizations of transcripts and
+captions.
+
+The project would be evaluated on existing audio records of talk shows (
+Singapore's 93.8FM), video records (Singapore Parliament proceedings) and
+multi-channel recordings (a four-people conversation on Singapore Army). It
+achieves all the requirements and proves the usefulness of this project.
+
 \newpage
 
 \phantomsection{}
@@ -22,8 +51,8 @@ deliverables. The specific persons, in no particular order, are, Dr.\ Xu Haihua,
 Mr.\ Kyaw Zin Tun, Mr.\ Pham Van Tung, Ms.\ Ho Thi Nga, and Ms.\ Vu Thi Ly.
 
 Above all, I would like to say thanks to my friends and family, especially to my
-beloved, for your emotional support during this period and throughout my university
-education.
+dearly beloved, for your emotional support during this period and throughout my
+university education.
 \newpage
 
 \phantomsection{}
