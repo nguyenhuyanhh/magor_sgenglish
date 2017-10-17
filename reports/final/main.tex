@@ -6,15 +6,19 @@
 \usepackage[a4paper, top=3cm, bottom=3cm, left=3.5cm, right=3cm]{geometry}
 \usepackage{setspace}
 \onehalfspacing{}
+\usepackage{parskip}
 \usepackage{chngcntr}
 \counterwithout{footnote}{chapter}
 \usepackage{fancyhdr}
 \fancyhead[L]{\leftmark}
 \fancyhead[C,R]{}
 \usepackage{graphicx}
+\graphicspath{ {../images/} }
 \usepackage{tabu}
 \tabulinesep=_4pt
-\usepackage[parfill]{parskip}
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage{float}
 
 % reference
 \usepackage[style=ieee]{biblatex}
@@ -56,6 +60,7 @@
 \pagenumbering{arabic}
 \pagestyle{fancy}
 \input{intro}
+\input{lit_review}
 \newpage
 \phantomsection{}
 \addcontentsline{toc}{chapter}{Bibliography}

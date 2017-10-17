@@ -1,0 +1,54 @@
+\chapter{Literature Review}
+
+This chapter reviews the currently available implementations of various
+components in the processing pipeline. This chapter would be divided into
+two sections, each dealing with a process --- the first section would
+describe transcription, and the second section captioning.
+
+\section{Transcription}
+
+Figure \ref{trans} provided the transcription pipeline of three components
+--- a resampler, a diarizer and a transcription engine. We would go into
+each component in detail.
+
+Furthermore, to enable transcription of multi-channel recording, the concept
+of voice-activity detection would also be discussed.
+
+\subsection{Resampling}
+
+In the context of this project, resampling is concerned with converting an
+audio stream from different specifications to a standard one, before passing to
+other processing steps. Some of the common attributes of an audio stream are:
+
+\begin{table}[H]
+    \begin{tabu}{X[l]X[3]X[2]}
+        \textbf{Attribute} & \textbf{Definition} & \textbf{Examples} \\
+        \midrule
+        Sample rate &
+        (defined for PCM audio)\newline Number of audio samples per
+        second &
+        CD audio: 44100 Hz \\
+
+        Bit depth &
+        (defined for PCM audio)\newline Number of bits to represent
+        a sample &
+        CD audio: 16 bits \\
+        
+        Number of channels & & \\
+        
+        Format (codec) & &        
+    \end{tabu}
+    \caption{Common audio stream attributes}
+\end{table}
+
+
+It comprises of three tasks\footnote{
+The canonical definition of resampling is only concerned with the first task.}:
+
+\begin{itemize}
+    \item Sample rate conversion --- changing the sample rate of the audio
+    \item 
+\end{itemize}
+
+
+\section{Captioning}
