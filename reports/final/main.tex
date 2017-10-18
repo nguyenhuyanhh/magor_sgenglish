@@ -12,16 +12,19 @@
 \usepackage{fancyhdr}
 \fancyhead[L]{\leftmark}
 \fancyhead[C,R]{}
+\usepackage{float}
 \usepackage{graphicx}
 \graphicspath{ {../images/} }
-\usepackage{tabu}
-\tabulinesep=_4pt
+\usepackage[tableposition=below]{caption}
+\captionsetup[longtable]{skip=1em}
 \usepackage{longtable}
+\setlength{\LTpost}{0pt}
 \usepackage{booktabs}
-\usepackage{float}
+\usepackage{tabu}
+\tabulinesep=^4pt_4pt
 
 % reference
-\usepackage[style=ieee]{biblatex}
+\usepackage[style=ieee, block=ragged]{biblatex}
 \addbibresource{../sources.bib}
 
 % code listings

@@ -5,9 +5,11 @@ components in the processing pipeline. This chapter would be divided into
 two sections, each dealing with a process --- the first section would
 describe transcription, and the second section captioning.
 
+Most of the implementations chosen are free, open-source and cross-platform.
+
 \section{Transcription}
 
-Figure \ref{trans} provided the transcription pipeline of three components
+Figure~\ref{trans} provided the transcription pipeline of three components
 --- a resampler, a diarizer and a transcription engine. We would go into
 each component in detail.
 
@@ -18,37 +20,69 @@ of voice-activity detection would also be discussed.
 
 In the context of this project, resampling is concerned with converting an
 audio stream from different specifications to a standard one, before passing to
-other processing steps. Some of the common attributes of an audio stream are:
+other processing steps. Some common attributes of an audio stream are:
 
-\begin{table}[H]
-    \begin{tabu}{X[l]X[3]X[2]}
-        \textbf{Attribute} & \textbf{Definition} & \textbf{Examples} \\
-        \midrule
-        Sample rate &
-        (defined for PCM audio)\newline Number of audio samples per
-        second &
-        CD audio: 44100 Hz \\
-
-        Bit depth &
-        (defined for PCM audio)\newline Number of bits to represent
-        a sample &
-        CD audio: 16 bits \\
-        
-        Number of channels & & \\
-        
-        Format (codec) & &        
-    \end{tabu}
+\begin{longtabu}{X[1.5,l]X[4]X[2.5]}
+    \textbf{Attribute} & \textbf{Description} & \textbf{Examples} \\
+    \midrule
+    \endhead{}
+    Sample rate &
+    (defined for PCM audio)\newline Number of audio samples per
+    second~\cite{weik1995communications} &
+    CD audio: 44100 Hz~\cite{sample-rate} \\
+    Bit depth &
+    (defined for PCM audio)\newline Number of bits to represent
+    a sample~\cite{thompson2005understanding} &
+    CD audio: 16 bits~\cite{iec60908} \\
+    Number of channels &
+    Number of independent audio channels (to create a
+    perception of depth) &
+    Mono (1-channel)/\newline
+    Stereo (2-channel)\cite{mono-stereo} \\
+    Audio coding format &
+    The specific encoder/ decoder used to create the audio stream;
+    usually associated with a certain file extension &
+    MPEG-2 Audio Layer-III (\texttt{.mp3})~\cite{mp3}\newline
+    WAVE (\texttt{.wav})~\cite{wav} \\
     \caption{Common audio stream attributes}
-\end{table}
+\end{longtabu}
 
-
-It comprises of three tasks\footnote{
-The canonical definition of resampling is only concerned with the first task.}:
+Respectively, in order to resample audio streams, the following tasks
+are performed on the original audio stream\footnote{The canonical
+definition of resampling is only concerned with the first task
+(sample rate conversion).}:
 
 \begin{itemize}
     \item Sample rate conversion --- changing the sample rate of the audio
-    \item 
+    (for instance, from 44100Hz to 16000Hz)
+    \item Sample format conversion --- changing the type of the sample
+    (for instance, from 16-bit to 8-bit samples)
+    \item Channel rematrixing --- changing the number of channels
+    (for instance, from stereo to mono audio)
+    \item Transcoding --- changing the audio coding format (for instance,
+    from WAVE to MPEG Layer-3)
 \end{itemize}
 
+There are two software packages to perform all the above tasks:
+
+\subsubsection{Sound eXchange --- SoX (\texttt{sox})}
+
+SoX is a cross-platform command line utility that supports conversion
+between a wide range of audio formats. Additionally, the utility could
+apply effects, and play and record audio files~\cite{sox-docs}.
+
+The latest version of SoX, 14.4.2 was released in February
+2015~\cite{sox-cl}. The status of development work is uncertain.
+
+SoX is written in C, and there are a number of wrappers to other
+programming languages.
+
+\subsubsection{FFmpeg (\texttt{ffmpeg})}
+
+FFmpeg is another cross-platform utility to record, convert and stream
+audio and video~\cite{ffmpeg}.
+
+The latest stable version of FFmpeg, 3.4 was released in October
+2017~\cite{ffmpeg-dl}. The library is still actively developed.
 
 \section{Captioning}
