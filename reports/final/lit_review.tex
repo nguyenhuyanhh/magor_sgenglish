@@ -14,7 +14,7 @@ Figure~\ref{trans} provided the transcription pipeline of three components
 each component in detail.
 
 Furthermore, to enable transcription of multi-channel recording, the concept
-of voice-activity detection would also be discussed.
+of voice-activity detection (VAD) would also be discussed.
 
 \subsection{Resampling}
 
@@ -22,7 +22,7 @@ In the context of this project, resampling is concerned with converting an
 audio stream from different specifications to a standard one, before passing to
 other processing steps. Some common attributes of an audio stream are:
 
-\begin{longtabu}{X[1.5,l]X[4]X[2.5]}
+\begin{longtabu}{X[1.5,l]X[4,l]X[2.5,l]}
     \textbf{Attribute} & \textbf{Description} & \textbf{Examples} \\
     \midrule
     \endhead{}
@@ -38,11 +38,11 @@ other processing steps. Some common attributes of an audio stream are:
     Number of independent audio channels (to create a
     perception of depth) &
     Mono (1-channel)/\newline
-    Stereo (2-channel)\cite{mono-stereo} \\
+    Stereo (2-channel)~\cite{mono-stereo} \\
     Audio coding format &
     The specific encoder/ decoder used to create the audio stream;
     usually associated with a certain file extension &
-    MPEG-2 Audio Layer-III (\texttt{.mp3})~\cite{mp3}\newline
+    MPEG-2 Audio Layer III (\texttt{.mp3})~\cite{mp3}\newline
     WAVE (\texttt{.wav})~\cite{wav} \\
     \caption{Common audio stream attributes}
 \end{longtabu}
@@ -67,22 +67,94 @@ There are two software packages to perform all the above tasks:
 
 \subsubsection{Sound eXchange --- SoX (\texttt{sox})}
 
-SoX is a cross-platform command line utility that supports conversion
+SoX is a cross-platform command-line utility that supports conversion
 between a wide range of audio formats. Additionally, the utility could
 apply effects, and play and record audio files~\cite{sox-docs}.
+SoX is written in C\@; the associated library is \texttt{libsox}. Its
+resampling library is released separately as
+\texttt{libsoxr}~\cite{sox}.
 
-The latest version of SoX, 14.4.2 was released in February
-2015~\cite{sox-cl}. The status of development work is uncertain.
+\begin{figure}[h]
+\begin{center}
+    \includegraphics[width=0.6\textwidth]{sox}
+    \caption{An example SoX session~\cite{sox}}
+\end{center}
+\end{figure}
 
-SoX is written in C, and there are a number of wrappers to other
-programming languages.
+The latest version of SoX, 14.4.2 was released in February 2015. The
+current status of development work is uncertain; many issues and pull
+requests are outstanding~\cite{sox-cl}.
 
 \subsubsection{FFmpeg (\texttt{ffmpeg})}
 
-FFmpeg is another cross-platform utility to record, convert and stream
-audio and video~\cite{ffmpeg}.
+FFmpeg is another C cross-platform utility to record, convert and stream
+audio and video~\cite{ffmpeg}. FFmpeg provides a resampler which can
+perform audio resampling, audio channel layout rematrixing, and convert
+audio format and packing layout; it interfaces with its own resampling
+library (\texttt{libswresample}) as well as SoX's resampling
+library~\cite{ffmpeg-res,ffmpeg-libres}.
 
-The latest stable version of FFmpeg, 3.4 was released in October
-2017~\cite{ffmpeg-dl}. The library is still actively developed.
+The library is actively developed; its latest stable version is 3.4
+and it was released in October 2017~\cite{ffmpeg-dl}.
+
+\subsubsection{Evaluation}
+
+The two packages offer very similar functionalities; they are also
+highly performant. However, FFmpeg has two clear advantages: it is
+actively maintained and updated, and it operates on both audio and
+video files (compare to audio only for SoX). FFmpeg also supports
+more audio formats out-of-the-box.
+
+Overall, FFmpeg would be a more suitable package for the project.
+
+\subsection{Diarization}
+
+With respect to an audio stream of multiple speakers, diarization is
+the process of determining which speaker is speaking at when~\cite{diar}. 
+Diarization is a combination of two tasks --- speaker segmentation,
+which is the process of finding speaker change points in an audio stream,
+to split the stream into smaller segments; and speaker clustering,
+which is the process of grouping said segments based on speaker
+characteristics, ideally resulting in one cluster per actual
+speaker~\cite{diar-cls}.
+
+One of the most frequently cited diarization toolkit is LIUM Speaker
+Diarization.
+
+\subsubsection{LIUM Speaker Diarization}
+
+LIUM Speaker Diarization is an open-source diarization toolkit developed
+at Laboratoire d'Informatique de l'Université du Maine~\cite{lium}.
+
+
+
+It produces a segmentation file 
+(\texttt{.seg})~\cite{lium-seg} which details the start time, end time and
+\texttt{speaker\_id} of all identified segments. The source package is in Java;
+however there is a convenient command-line interface~\cite{lium} which allows
+for a Python wrapper (using the standard Python library module
+\texttt{subprocess}).
+
+\subsection{Transcription Engine}
+
+The main purpose of the transcription engine is to transcribe speech
+segments to text. There are a number of transcription engines available.
+
+\subsubsection{Google Cloud Speech API}
+
+Cloud Speech API~\cite{gcs} is developed by Google, providing the same speech
+recognition capabilities powering Google's native applications (such as Voice
+Search) to developers. A Python client library (\texttt{google-cloud-speech})
+~\cite{gh-gcs} is available which would form the basis of the implemented module.
+However to perform speech recognition, one needs to provide a Google API service
+account key~\cite{gcs-api-key} and this key is used for usage tracking; the free
+tier only allows \$300 of credits to be used in 12 months~\cite{gcs-free}
+\footnote{Usage is charged in terms of 15-second blocks; each block is \$0.0025.}.
+As such, care must be taken not to exceed the limit; complete checks are heavily
+enforced to reduce the number of unnecessary API operations.
+
+\subsection{Voice-activity Detection (VAD)}
+
+In a multi-channel recording scenario.
 
 \section{Captioning}
