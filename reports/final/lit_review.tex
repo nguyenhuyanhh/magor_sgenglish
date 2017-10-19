@@ -1,9 +1,10 @@
 \chapter{Literature Review}
 
 This chapter reviews the currently available implementations of various
-components in the processing pipeline. This chapter would be divided into
-two sections, each dealing with a process --- the first section would
-describe transcription, and the second section captioning.
+components in the processing pipeline. The first two sections enumerate
+the two relevant pipelines --- Section 2.1 describes transcription, and
+Section 2.2 describes captioning. Finally, Section 2.3 summarises the
+various implementations.
 
 Most of the implementations chosen are free, open-source and cross-platform.
 
@@ -29,11 +30,11 @@ other processing steps. Some common attributes of an audio stream are:
     Sample rate &
     (defined for PCM audio)\newline Number of audio samples per
     second~\cite{weik1995communications} &
-    CD audio: 44100 Hz~\cite{sample-rate} \\
+    CD audio: 44100 Hz~\cite{cd} \\
     Bit depth &
     (defined for PCM audio)\newline Number of bits to represent
     a sample~\cite{thompson2005understanding} &
-    CD audio: 16 bits~\cite{iec60908} \\
+    CD audio: 16 bits~\cite{cd} \\
     Number of channels &
     Number of independent audio channels (to create a
     perception of depth) &
@@ -60,7 +61,7 @@ definition of resampling is only concerned with the first task
     \item Channel rematrixing --- changing the number of channels
     (for instance, from stereo to mono audio)
     \item Transcoding --- changing the audio coding format (for instance,
-    from WAVE to MPEG Layer-3)
+    from WAVE to MPEG Layer-III)
 \end{itemize}
 
 There are two software packages to perform all the above tasks:
@@ -74,10 +75,12 @@ SoX is written in C\@; the associated library is \texttt{libsox}. Its
 resampling library is released separately as
 \texttt{libsoxr}~\cite{sox}.
 
-\begin{figure}[h]
+Figure~\ref{sox} shows an example run of SoX.
+
+\begin{figure}[ht]
 \begin{center}
     \includegraphics[width=0.6\textwidth]{sox}
-    \caption{An example SoX session~\cite{sox}}
+    \caption{An example SoX session~\cite{sox}}\label{sox}
 \end{center}
 \end{figure}
 
@@ -118,6 +121,21 @@ which is the process of grouping said segments based on speaker
 characteristics, ideally resulting in one cluster per actual
 speaker~\cite{diar-cls}.
 
+Implementations of speaker diarization usually follow one of these
+two approaches~\cite{diar}:
+
+\begin{itemize}
+    \item Bottom-up --- initialize a large number of segments (more than
+    the optimal), then iteratively merge segments until optimal
+    \item Top-down --- initialize a single model of one segment (the whole
+    audio stream), then iteratively add new models corresponding to new
+    segments, until optimal
+\end{itemize}
+
+Both are characterised by the use of Hidden Markov Models (HMMs) and 
+Gaussian Mixture Models (GMMs), a statiscal and probabilistic approach
+to clustering.
+
 One of the most frequently cited diarization toolkit is LIUM Speaker
 Diarization.
 
@@ -126,32 +144,135 @@ Diarization.
 LIUM Speaker Diarization is an open-source diarization toolkit developed
 at Laboratoire d'Informatique de l'Université du Maine~\cite{lium}.
 
+\begin{figure}[h]
+\begin{center}
+    \includegraphics[width=0.6\textwidth]{diarization}
+    \caption{The LIUM processing pipeline~\cite{lium-ovr}}\label{lium}
+\end{center}
+\end{figure}
 
+Figure~\ref{lium} outlines the steps in LIUM's processing pipeline.
+LIUM follows the bottom-up approach; it utilises agglomerative hierarchical
+clustering, using Bayesian Information Criterion as the stopping/ clustering
+criteria. LIUM produces a segmentation file (\texttt{.seg}) which details
+the start time, length and \texttt{speaker\_id} of all identified
+segments. An example segmentation is shown in Figure~\ref{seg}\footnote{The
+segmentation output has 8 fields, in this particular
+order: \texttt{show\_id}, \texttt{channel\_id}, start time, length, gender
+type of band, type of environment and \texttt{speaker\_id}.}~\cite{lium-seg}.
 
-It produces a segmentation file 
-(\texttt{.seg})~\cite{lium-seg} which details the start time, end time and
-\texttt{speaker\_id} of all identified segments. The source package is in Java;
-however there is a convenient command-line interface~\cite{lium} which allows
-for a Python wrapper (using the standard Python library module
-\texttt{subprocess}).
+\begin{figure}[h]
+\begin{lstlisting}
+20071218_1900_1920_inter 1 0    322   M S U S0
+20071218_1900_1920_inter 1 322  680   F S U S1
+20071218_1900_1920_inter 1 1148 371   M S U S143
+20071218_1900_1920_inter 1 1772 310   F S U S3
+20071218_1900_1920_inter 1 2082 318   F S U S28
+20071218_1900_1920_inter 1 2495 1570  M S U S12
+\end{lstlisting}
+\caption{Sample segmentation output}\label{seg}
+\end{figure}
+
+LIUM is written in Java; however there is a convenient CLI~\cite{lium}
+utilising its \texttt{.jar} package.
+Its latest version is 8.4.1, released in September 2013~\cite{lium-dl}.
+
+\subsubsection{Evaluation}
+
+LIUM is considered one of the state-of-the-art toolkits in speaker
+diarization; it came out on top in a series of evaluations~\cite{lium-ester,
+lium-revere}. It is also very performant, as evidence in Figure~\ref{lium}:
+using relatively recent hardware, it takes less than half-real-time
+to diarize an audio stream. It also does a good job of preparing the
+audio stream for ASR\@: resulting segments are short and single-speaker.
+
+However, the out-of-the-box configuration is tuned towards broadcast
+news diarization; for other audio domains the results might vary
+and specific tuning might be required. The toolkit is also fairly outdated.
+
+Nonetheless, LIUM is a great starting point for building the diarization
+component for the transcription processing pipeline. 
 
 \subsection{Transcription Engine}
 
 The main purpose of the transcription engine is to transcribe speech
-segments to text. There are a number of transcription engines available.
+segments to text (in other words, to perform ASR). 
+
+Figure~\ref{asr} outlines the typical architecture of an ASR
+system. The ASR system takes in an audio stream and extract
+its features --- the most common being mel-frequency cepstral
+coeffcients (MFCCs) --- then pass the features to an acoustic model.
+Combined with a language model, the ASR system comes up with probable
+results and selects the best one based on its criteria~\cite{asr}.
+
+\begin{figure}[h]
+\begin{center}
+    \includegraphics[width=0.9\textwidth]{pipeline_asr}
+    \caption{Structure of an ASR system}\label{asr}
+\end{center}
+\end{figure}
+
+The current state-of-the-art in ASR are among these two methodologies:
+
+\begin{itemize}
+    \item Statiscal/ probabilistic methods, utilising a combination of
+    HMMs and GMMs
+    \item Deep neural network (DNN)-based methods
+\end{itemize}
+
+With the advent of high-performance computing, DNN-based methods are
+quickly gaining traction. We review two DNN-based transcription engines.
 
 \subsubsection{Google Cloud Speech API}
 
-Cloud Speech API~\cite{gcs} is developed by Google, providing the same speech
-recognition capabilities powering Google's native applications (such as Voice
-Search) to developers. A Python client library (\texttt{google-cloud-speech})
-~\cite{gh-gcs} is available which would form the basis of the implemented module.
-However to perform speech recognition, one needs to provide a Google API service
-account key~\cite{gcs-api-key} and this key is used for usage tracking; the free
-tier only allows \$300 of credits to be used in 12 months~\cite{gcs-free}
-\footnote{Usage is charged in terms of 15-second blocks; each block is \$0.0025.}.
-As such, care must be taken not to exceed the limit; complete checks are heavily
-enforced to reduce the number of unnecessary API operations.
+Cloud Speech API is developed by Google, providing the same speech
+recognition capabilities powering Google's native applications (such as
+Google Voice Search and Google Assistant) to developers. Cloud Speech API
+has support for 110 languages, including multiple variances of popular
+languages such as English~\cite{gcs}.
+
+The implementation details of Cloud Speech API are hidden to the developer;
+various API libraries\footnote{Most of the libraries are experimental and
+continuously updated.} for common programming languages are
+provided~\cite{gcs-libs}. In a normal workflow, speech segments are sent to
+Google's servers through the client libraries in one of three configurations:
+synchronous, asynchronous and streaming recognition; the servers return
+recognition results in JSON\@. A sample is given in Figure~\ref{gcs}.
+
+\begin{figure}[ht]
+\begin{lstlisting}
+    {
+        "results": [
+            {
+                "alternatives": [
+                    {
+                        "transcript": "how old is the Brooklyn Bridge",
+                        "confidence": 0.98267895
+                    }
+                ]
+            }
+        ]
+    }      
+\end{lstlisting}
+\caption{Sample Google Cloud Speech API recognition result}\label{gcs}
+\end{figure}
+
+To perform speech recognition, one needs to provide
+a Google API service account key~\cite{gcs-api-key} and this key is used
+for usage tracking; the free tier only allows \$300 of credits to be used
+in 12 months~\cite{gcs-free}\footnote{Usage is charged in terms of 15-second
+blocks; each block is \$0.0025.}.
+
+\subsubsection{Kaldi}
+
+In SLRG, there have been efforts to build a LVCSR system for the English
+language~\cite{slrg}. This effort is led by Dr.\ Li Haihua; the system is based
+on \texttt{Kaldi}~\cite{kaldi}, an open-source toolkit for speech
+recognition written in C++. The system is provided as a black box; the models
+and executable are conveniently packaged together. A Python wrapper has been
+implemented.
+
+\subsubsection{Evaluation}
 
 \subsection{Voice-activity Detection (VAD)}
 
