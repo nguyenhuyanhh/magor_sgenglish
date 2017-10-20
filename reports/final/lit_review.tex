@@ -17,11 +17,12 @@ each component in detail.
 Furthermore, to enable transcription of multi-channel recording, the concept
 of voice-activity detection (VAD) would also be discussed.
 
-\subsection{Resampling}
+\subsection{Resampling}\label{resampling}
 
 In the context of this project, resampling is concerned with converting an
 audio stream from different specifications to a standard one, before passing to
-other processing steps. Some common attributes of an audio stream are:
+other processing steps. Table~\ref{audio} describes some common attributes
+of an audio stream.
 
 \begin{longtabu}{X[1.5,l]X[4,l]X[2.5,l]}
     \textbf{Attribute} & \textbf{Description} & \textbf{Examples} \\
@@ -45,7 +46,7 @@ other processing steps. Some common attributes of an audio stream are:
     usually associated with a certain file extension &
     MPEG-2 Audio Layer III (\texttt{.mp3})~\cite{mp3}\newline
     WAVE (\texttt{.wav})~\cite{wav} \\
-    \caption{Common audio stream attributes}
+    \caption{Common audio stream attributes}\label{audio}
 \end{longtabu}
 
 Respectively, in order to resample audio streams, the following tasks
@@ -265,17 +266,122 @@ blocks; each block is \$0.0025.}.
 
 \subsubsection{Kaldi}
 
-In SLRG, there have been efforts to build a LVCSR system for the English
-language~\cite{slrg}. This effort is led by Dr.\ Li Haihua; the system is based
-on \texttt{Kaldi}~\cite{kaldi}, an open-source toolkit for speech
-recognition written in C++. The system is provided as a black box; the models
-and executable are conveniently packaged together. A Python wrapper has been
-implemented.
+Kaldi is an open-source toolkit for speech recognition, developed with a
+goal of being modern and flexible, to allow for easy extension and
+modification.
+
+Figure~\ref{kaldi} outlines the structure of Kaldi. It is a collection of
+command-line tools written in C++ that rely on standard numerical
+algebra (BLAS/LAPACK) and finite state transducer (OpenFST) libraries,
+and shell scripts to pipe the tools together to build a complete ASR
+system. Recipes and data are provided for a large number of ASR and DNN
+tasks~\cite{kaldi}.
+
+\begin{figure}[h]
+\begin{center}
+    \includegraphics[width=0.6\textwidth]{kaldi-lib}
+    \caption{Structure of Kaldi}\label{kaldi}
+\end{center}
+\end{figure}
+
+Kaldi is actively developed; the developers encourage Kaldi users to
+check out the latest version of Kaldi available~\cite{kaldi-ver}.
 
 \subsubsection{Evaluation}
 
+Both Google Cloud Speech API and Kaldi are DNN-based ASR systems considered
+state-of-the-art in commercial~\cite{gcs-comp} and open-source~\cite{kaldi-comp}
+communities respectively. Both systems are continuously updated and improved;
+however as a commercial solution, Google Cloud Speech API's underlying model
+improvements are invisible to developers, and the system is technically not
+free. Kaldi makes it easier to tweak and design an ASR system on the ground up.
+
+There is an interest to compare both systems' performance on a real-world
+scenario; the project would attempt to run both Google Cloud Speech API
+and Kaldi.
+
 \subsection{Voice-activity Detection (VAD)}
 
-In a multi-channel recording scenario.
+VAD is defined as the process to distinguish speech from non-speech segments.
+It is fundamental for a speech processing system to perform VAD well, otherwise
+time and computational power would be wasted on processing non-speech
+segments~\cite{vad}.
+
+A reference structure to perform VAD is describe in Figure~\ref{vad}~\cite{vad}.
+Features are extracted from the raw signals; the features should differentiate
+speech and non-speech well. Different features already explored in literature
+include power and signal-to-noise, pitch and harmonicity, stationarity and
+modulation~\cite{vad-feats}. Features are then passed to a decision module to
+produce an initial VAD decision, which is then smoothed to a final decision.
+
+\begin{figure}[h]
+\begin{center}
+    \includegraphics[width=0.9\textwidth]{pipeline_vad}
+    \caption{Structure of a VAD system}\label{vad}
+\end{center}
+\end{figure}
+
+We are interested in the scenario of a multi-channel recording. In such a
+scenario, multiple speakers might be speaking concurrently to individual
+close-talk microphones\footnote{A close-talk microphone is one designed to pick
+up voices from a very close distance (10cm or less).}. Despite the use of such
+microphones, the problem of crosstalk persists; in a particular speaker's
+close-talk recording, speech segments from other speakers still exist, and
+their presence would interfere with attempts to do ASR on the
+recording~\cite{vad-mc}. Multi-channel VAD attempts
+to remove the crosstalk before passing the (clean) speech to an ASR system.
+
+\subsection{Summary}
+
+In this section, we have presented a review of some current frameworks for
+resampling (FFmpeg, SoX), diarization (LIUM) and transcription (Google Cloud
+Speech API and Kaldi). The concept of multi-channel VAD has also been briefly
+discussed.
+
+We now have the necessary components to build a transcription system capable
+of processing single audio/ video stream as well as multi-channel recordings.
+The next section focuses on the second pipeline of captioning.
 
 \section{Captioning}
+
+Figure~\ref{cap} provided the image captioning pipeline of two components ---
+a converter and a caption generator. We would go into each component in detail.
+
+\subsection{Video conversion}
+
+Similar to the process of resampling described in Section~\ref{resampling},
+conversion is concerned with changing a video file from different specifications
+to a standard one before passing to other processing steps. A video file
+is a container, containing a video stream as well as one or more audio
+streams, and usually associated with an extension~\cite{vid}.
+
+Some of the most common container formats include:
+
+\begin{itemize}
+    \item Audio-Video Interleave (\texttt{.avi}), developed by
+    Microsoft~\cite{avi} and is the default format playable in Windows
+    \item Flash Video (\texttt{.flv}), developed by Adobe~\cite{flv} and is
+    the most common streaming format up until recent years
+    \item MPEG-4 Part 14 (\texttt{.mp4}), developed as a standard by the
+    Moving Pictures Experts Group~\cite{mp4}, considered the current
+    \textit{de facto} video format.
+\end{itemize}
+
+Depending on the container format, the video and audio streams could be permitted
+to follow different specific video/audio formats. Given a source and a target
+container format, the conversion process could proceed as per Figure~\ref{convert}.
+The source container would be unpacked to its individual audio/ video streams.
+The streams would be resampled/ re-encoded depending on the target container, then
+packed together in the target container format.
+
+\begin{figure}[ht]
+\begin{center}
+    \includegraphics[width=0.9\textwidth]{pipeline_convert}
+    \caption{Video conversion pipeline}\label{convert}
+\end{center}
+\end{figure}
+
+Similar to Section~\ref{resampling}, the open-source toolkit of choice to handle
+video conversion is FFmpeg. It provides two libraries, \texttt{libavcodec} and
+\texttt{libavformat}, generic frameworks for encoding/ decoding streams, and
+multiplexing/ demultiplexing container formats~\cite{ffmpeg-libav, ffmpeg-libfmt}.
