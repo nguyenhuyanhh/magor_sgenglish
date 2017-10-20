@@ -196,7 +196,10 @@ well-tested; wrappers around its command-line interface are available for many
 programming languages. For ease of implementation in Python, the Python wrapper
 \texttt{FFmpy}~\cite{ffmpy} is used; no additional packages are required.
 
-The module \texttt{resample-1.0} would take an imported audio or video raw file from \texttt{data/file\_id/raw}, resample it and put the resampled file in \texttt{data/file\_id/resample}. It is a fairly quick process; no temporary files are created and successful completion is checked by the presence of the output file.
+The module \texttt{resample-1.0} would take an imported audio or video raw file
+from \texttt{data/file\_id/raw}, resample it and put the resampled file in
+\texttt{data/file\_id/resample}. It is a fairly quick process; no temporary files
+are created and successful completion is checked by the presence of the output file.
 
 \subsubsection{Speaker diarization}
 
@@ -253,7 +256,7 @@ to Google Cloud Speech API\@. Intermediate results would be stored in
 
 In SLRG, there have been efforts to build a LVCSR system for the English
 language~\cite{slrg}. This effort is led by Dr.\ Li Haihua; the system is based
-on \texttt{Kaldi}~\cite{Povey_ASRU2011}, an open-source toolkit for speech
+on \texttt{Kaldi}~\cite{kaldi}, an open-source toolkit for speech
 recognition written in C++. The system is provided as a black box; the models
 and executable are conveniently packaged together. A Python wrapper has been
 implemented.
