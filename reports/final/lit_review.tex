@@ -331,17 +331,6 @@ their presence would interfere with attempts to do ASR on the
 recording~\cite{vad-mc}. Multi-channel VAD attempts
 to remove the crosstalk before passing the (clean) speech to an ASR system.
 
-\subsection{Summary}
-
-In this section, we have presented a review of some current frameworks for
-resampling (FFmpeg, SoX), diarization (LIUM) and transcription (Google Cloud
-Speech API and Kaldi). The concept of multi-channel VAD has also been briefly
-discussed.
-
-We now have the necessary components to build a transcription system capable
-of processing single audio/ video stream as well as multi-channel recordings.
-The next section focuses on the second pipeline of captioning.
-
 \section{Captioning}
 
 Figure~\ref{cap} provided the image captioning pipeline of two components ---
@@ -385,3 +374,88 @@ Similar to Section~\ref{resampling}, the open-source toolkit of choice to handle
 video conversion is FFmpeg. It provides two libraries, \texttt{libavcodec} and
 \texttt{libavformat}, generic frameworks for encoding/ decoding streams, and
 multiplexing/ demultiplexing container formats~\cite{ffmpeg-libav, ffmpeg-libfmt}.
+
+\subsection{Caption generation}
+
+Generating human-like description of images is an important and difficult task
+in artificial intelligence, that merges computer vision and NLP --- a caption
+generator must be able to recognize, separate and describe objects in an image,
+and it must be able to string the individual descriptions together in a natural
+way to achieve human-like performance~\cite{google-img,nrtalk}.
+
+Recently, the state-of-the-art approaches to caption generation are DNN-based;
+they combine a DNN approach to computer vision with another DNN approach in
+natural language processing. The recent availability of large, annotated
+image datasets such as ImageNet, Flickr8K, Flickr30K and MSCOCO~\cite{imagenet,
+flickr8k,flickr30k,mscoco} also aids the rapid advancements in this field.
+
+We briefly review two DNN-based approaches. Their overall structure is similar
+to the one described in Figure~\ref{dnn-cap}; in the training phase, the training
+dataset with images and human captions would go through DNNs to learn objects
+and their relations, and produce a model which would be applied on a test set
+of unseen images. The generated caption would be compared with the ``gold truth''
+and scored using a number of metrics.
+
+\begin{figure}[ht]
+\begin{center}
+    \includegraphics[width=0.9\textwidth]{pipeline_caption}
+    \caption{DNN-based caption generation pipeline}\label{dnn-cap}
+\end{center}
+\end{figure}
+
+The two approaches only differ in their choice of DNN architecture.
+
+\subsubsection{NeuralTalk}
+
+NeuralTalk~\cite{nrtalk} is an image captioning system developed by researchers
+at Stanford University. The system is a combination of convolutional neural
+networks (CNNs)\footnote{CNN is a DNN architecture utilising a number of
+convolution and pooling layers to reduce the dimensions of high-dimensional
+features such as images. It is considered the state-of-the-art for image-related
+tasks.} on image regions, recurrent neural networks (RNNs)\footnote{RNN is a DNN
+architecture where the input to the next layer is the output of previous layers
+(hence the name ``recurrent''). It is considered the state-of-the-art in
+sequential data processing, such as in NLP tasks.} on the captions, and a
+multimodal embedding to align the two DNN structures.
+
+The original implementation is open-source and available online; an updated
+version, NeuralTalk2, is also available~\cite{gh-nrtalk,gh-nrtalk2}.
+
+\subsubsection{Google Neural Image Captioning}
+
+Neural Image Captioning~\cite{google-img} is developed by researchers at Google.
+The system combines CNNs for encoding image features and long short-term memory
+(LSTM)\footnote{LSTM is a special type of RNN that could``remember'' values over
+arbitrary intervals, unlike normal RNNs where values change over time due to
+training by gradient-descent. The special structure leads to higher performance
+in the same tasks that RNNs excel in, i.e.\ NLP tasks.} networks for processing
+captions.
+
+The original implementation is also open-source and available
+online~\cite{gh-google-img}.
+
+\subsubsection{Evaluation}
+
+Both systems are state-of-the-art and performs very well in standardised
+image captioning challenges\cite{nrtalk,google-img}. However, such results do
+not necessarily translate to real-world applications; it is unclear how well
+they would perform on new images that are not in any dataset. The training
+process is also prohibitively long without the use of graphical processing
+units (GPUs); even with GPUs training time is still very long, owing to the 
+complexity of DNN calculations. A pretrained model would be useful to reduce
+the time taken to build a solution based on these methods.
+
+\section{Summary}
+
+In this chapter, we have presented a brief review of current frameworks to
+address individual components of the transcription and captioning pipelines:
+resampling (FFmpeg, SoX), diarization (LIUM), transcription engines (Google
+Cloud Speech API, Kaldi), multi-channel VAD, video conversion (FFmpeg) and
+caption generation (NeuralTalk and Google Neural Image Captioning). We have
+seen that realising individual components is a relatively easy task; there
+are an abundance of tools available to address specific problems. The hard
+question remains: how to connect the tools together to build a complete
+system for the specified task.
+
+The next two chapters would present the system developed to achieve the
+goal.
