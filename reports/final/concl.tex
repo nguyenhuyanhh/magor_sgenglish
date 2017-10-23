@@ -1,0 +1,54 @@
+\chapter{Conclusion}
+
+\section{Summary of Project}
+
+In this Final-Year Project, we have proposed an integrated
+processing system for transcription and captioning of multimedia
+data. The system architecture has been designed, and the major
+functionalities implemenented; the system fulfills the primary
+objectives of realising the following processing tasks:
+
+\begin{itemize}
+    \item Transcription of individual audio and video files using different
+    transcription solutions
+    \item Transcription of multi-channel audio recording
+    \item Keyframe captioning of video files
+    \item Visualization of the generated transcripts and captions
+\end{itemize}
+
+Furthermore, the system is able to fulfill five major quality attributes:
+
+\begin{itemize}
+    \item Modularity --- system components are independent in operation, and
+    self-contained
+    \item Extensibility --- system components are easily modified and upgraded
+    to suit different processing requirements
+    \item Robustness --- aggressive error detection, completion checking and
+    process resumption capabilities for every component
+    \item Versioning --- built-in mechanism for modular and output versioning
+    \item Logging and Reporting --- helpful diagnostic messages at both system
+    and component level
+\end{itemize}
+
+Overall, the implemenented system achieves its desired goals.
+
+\section{Future Recommendations}
+
+As described in Section~\ref{sec:in:sco}, the scope of this project starts only at
+the processing steps and stops after visualization, and there is no GUI implemenented
+at the moment. Hence, two recommendations would be briefly outlined.
+
+\subsubsection{Development of a GUI}
+
+The current implementation uses a CLI, which is not friendly to the users. A GUI
+could be developed on top of the current system; the system would then acts as a
+backend.
+
+This would open up the usage of the system to common users.
+
+\subsubsection{Development of a functioning indexing system}
+
+The most important part of a multimedia processing pipeline after processing is 
+the indexing and storage of data. Such a system if implemenented could have major
+benefits, allowing researchers and users to better utilise the data processed by
+our system.
