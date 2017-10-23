@@ -2,13 +2,13 @@
 
 This chapter reviews the currently available implementations of various
 components in the processing pipeline. The first two sections enumerate
-the two relevant pipelines --- Section 2.1 describes transcription, and
-Section 2.2 describes captioning. Finally, Section 2.3 summarises the
-various implementations.
+the two relevant pipelines --- Section~\ref{sec:lr:trans} describes
+transcription, and Section~\ref{sec:lr:cap} describes captioning.
+Finally, Section 2.3~\ref{sec:lr:summ} summarises the various implementations.
 
 Most of the implementations chosen are free, open-source and cross-platform.
 
-\section{Transcription}
+\section{Transcription}\label{sec:lr:trans}
 
 Figure~\ref{trans} provided the transcription pipeline of three components
 --- a resampler, a diarizer and a transcription engine. We would go into
@@ -331,7 +331,7 @@ their presence would interfere with attempts to do ASR on the
 recording~\cite{vad-mc}. Multi-channel VAD attempts
 to remove the crosstalk before passing the (clean) speech to an ASR system.
 
-\section{Captioning}
+\section{Captioning}\label{sec:lr:cap}
 
 Figure~\ref{cap} provided the image captioning pipeline of two components ---
 a converter and a caption generator. We would go into each component in detail.
@@ -445,7 +445,7 @@ units (GPUs); even with GPUs training time is still very long, owing to the
 complexity of DNN calculations. A pretrained model would be useful to reduce
 the time taken to build a solution based on these methods.
 
-\section{Summary}
+\section{Summary}\label{sec:lr:summ}
 
 In this chapter, we have presented a brief review of current frameworks to
 address individual components of the transcription and captioning pipelines:
