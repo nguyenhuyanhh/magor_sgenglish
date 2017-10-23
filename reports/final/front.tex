@@ -1,15 +1,46 @@
 % Front matter
+\phantomsection{}
 \addcontentsline{toc}{chapter}{Abstract}
 \chapter*{Abstract}
-Hello
+With the advent of computing, a huge amount of data is being created everyday.
+Most of the data are unstructured or semi-structured, and needs to be processed
+in order to derive meaning. For multimedia data (audio and video), a textual
+representation is often desirable, and there are two ways to obtain such a
+representation --- transcription and captioning. The two processes are
+well-defined pipelines of multiple components.
+
+However, for each component there are many existing implementations, but each
+having differentiated input and output formats, which makes it difficult to
+integrate to a pipeline. The pipeline itself is difficult to maintain, with
+any change/ upgrade to any component having a potential to break the pipeline.
+Furthermore, as the pipeline changes there is no mechanism to keep track of
+output versions; this capability is important for research purposes.
+
+This project proposes an integrated processing system performing transcription
+and captioning on a wide range of audio and video inputs --- single-file audio/
+video as well as multi-channel audio recordings. The project aims to design
+a system architecture that allows for modularity and extensibility, keeps track
+of different component and output versions and performs robustly under many
+scenarios. The project incorporates Python ports of existing modules from various
+efforts of the Speech and Language Research Group in the School of Computer
+Science and Engineering, as well as new Python modules to realize the processing
+pipeline --- transcription, captioning and visualizations of transcripts and
+captions.
+
+The project would be evaluated on existing audio records of talk shows 
+(Singapore's 93.8FM), video records (Singapore Parliament proceedings) and
+multi-channel recordings (a four-people conversation on Singapore Army). It
+achieves all the requirements and proves the usefulness of this project.
+
 \newpage
 
+\phantomsection{}
 \addcontentsline{toc}{chapter}{Acknowledgements}
 \chapter*{Acknowledgements}
 This Final-Year Project would not have been successful without the support
 of my mentors, reviewers, friends and family.
 
-I would like to extend my most sincere gratitude to my supervisor,
+Above all, I would like to extend my most sincere gratitude to my supervisor,
 Associate Professor Chng Eng Siong for your guidance throughout
 the course of this project and beyond.
 
@@ -19,19 +50,47 @@ Nanyang Technological University for your support in many of the project's
 deliverables. The specific persons, in no particular order, are, Dr.\ Xu Haihua,
 Mr.\ Kyaw Zin Tun, Mr.\ Pham Van Tung, Ms.\ Ho Thi Nga, and Ms.\ Vu Thi Ly.
 
-Above all, I would like to say thanks to my friends and family, especially to my
-beloved, for your emotional support during this period and throughout my university
-education.
+Finally, I would like to say thanks to my friends and family, especially to my
+dearly beloved, for your emotional support during this period and throughout my
+university education.
 \newpage
 
+\phantomsection{}
 \addcontentsline{toc}{chapter}{Table of Contents}
 \tableofcontents
 \newpage
 
+\phantomsection{}
 \addcontentsline{toc}{chapter}{List of Figures}
 \listoffigures
 \newpage
 
+\phantomsection{}
 \addcontentsline{toc}{chapter}{List of Tables}
 \listoftables
+\newpage
+
+\phantomsection{}
+\addcontentsline{toc}{chapter}{List of Abbreviations}
+\chapter*{List of Abbreviations}
+\begin{tabu}{lX}
+    \textbf{API} & Application Programming Interface \\
+    \textbf{ASR} & Automatic Speech Recognition \\
+    \textbf{CLI} & Command-line Interface \\
+    \textbf{CNN} & Convolutional Neural Network \\
+    \textbf{DNN} & Deep Neural Network \\
+    \textbf{GMM} & Gaussian Mixture Model \\
+    \textbf{GUI} & Graphical User Interface \\
+    \textbf{HMM} & Hidden Markov Model \\
+    \textbf{JSON} & JavaScript Object Notation \\
+    \textbf{LSTM} & Long Short-Term Memory Network \\
+    \textbf{LVCSR} & Large Vocabulary Continuous Speech Recognition \\
+    \textbf{MFCC} & Mel-Frequency Cepstral Coefficient \\
+    \textbf{NLP} & Natural Language Processing \\
+    \textbf{PCM} & Pulse-code Modulation \\
+    \textbf{RNN} & Recurrent Neural Network \\
+    \textbf{SLRG} & Speech and Language Research Group at School of Computer
+    Science and Engineering \\
+    \textbf{VAD} & Voice Activity Detection
+\end{tabu}
 \newpage

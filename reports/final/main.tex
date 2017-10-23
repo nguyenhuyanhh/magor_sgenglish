@@ -1,28 +1,35 @@
 \documentclass[11pt]{report}
 
 % report format
+\usepackage[hidelinks]{hyperref}
 \usepackage[utf8]{inputenc}
 \usepackage[a4paper, top=3cm, bottom=3cm, left=3.5cm, right=3cm]{geometry}
 \usepackage{setspace}
 \onehalfspacing{}
-
-\usepackage[hidelinks]{hyperref}
-\usepackage{graphicx}
-\usepackage{tabularx}
-\usepackage{listings}
-\usepackage{color}
+\usepackage{parskip}
 \usepackage{chngcntr}
 \counterwithout{footnote}{chapter}
+\usepackage{fancyhdr}
+\fancyhead[L]{\leftmark}
+\fancyhead[C,R]{}
+\usepackage{float}
+\usepackage{graphicx}
+\graphicspath{ {../images/} }
+\usepackage[tableposition=below]{caption}
+\captionsetup[longtable]{skip=1em}
+\usepackage{longtable}
+\setlength{\LTpost}{0pt}
+\usepackage{booktabs}
+\usepackage{tabu}
+\tabulinesep=^4pt_4pt
 
-\usepackage[style=ieee]{biblatex}
+% reference
+\usepackage[bibstyle=ieee, citestyle=numeric, block=ragged]{biblatex}
 \addbibresource{../sources.bib}
 
-% \usepackage{float}
-% \usepackage{multirow}
-% \usepackage{booktabs}
-% \usepackage{amssymb}
-
-% some configurations for the listings package
+% code listings
+\usepackage{listings}
+\usepackage{color}
 \definecolor{codegreen}{rgb}{0,0.6,0}
 \definecolor{codegray}{rgb}{0.5,0.5,0.5}
 \definecolor{codepurple}{rgb}{0.58,0,0.82}
@@ -47,12 +54,21 @@
 \lstset{style=mystyle}
 
 % actual report
-\pagenumbering{roman}
+\pagenumbering{gobble}
 \begin{document}
 \input{cover}
 \input{title}
+\pagenumbering{roman}
 \input{front}
 \pagenumbering{arabic}
+\pagestyle{fancy}
 \input{intro}
+\input{lit_review}
+\input{implement}
+\input{eval}
+\input{concl}
+\newpage
+\phantomsection{}
+\addcontentsline{toc}{chapter}{Bibliography}
 \printbibliography{}
 \end{document}

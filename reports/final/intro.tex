@@ -1,22 +1,55 @@
 \chapter{Introduction}
 
-\section{Background}
+\section{Background}\label{sec:in:back}
 
-With the advent of computing, a large amount of data is being created everyday.
+With the advent of computing, a large amount of data is being created
+everyday~\cite{emc}.
 Raw data exists in many forms --- numbers, texts, images, audio, video, etc.,
-and it must be processed in order to derive meaning. For multimedia data (audio
-and video), a textual representation of the data is desirable as a pre-cursor
-to further processing. The process of converting speech to text is called
-transcription~\cite{transcribe-mw}; the resultant transcript could be utilised
-in other tasks --- archival, indexing and search, concept and language
-understanding, etc.
+most of it unstructured or semi-structured~\cite{emc},
+and requires processing in order to derive meaning. Of particular interest for
+research purposes are multimedia data (audio and video), specifically
+multimedia data of the following three prevalent types:
+
+\begin{itemize}
+    \item Single-file audio --- radio recordings, interviews and talk shows
+    \item Single-file video --- televised news and speeches
+    \item Multi-channel audio --- recorded conversations using multiple
+    microphones
+\end{itemize}
+
+A general pipeline to process and index multimedia data would look like this:
+
+\begin{figure}[h]
+\begin{center}
+    \includegraphics[width=\textwidth]{pipeline}
+    \caption{Multimedia processing pipeline}
+\end{center}
+\end{figure}
+
+The multimedia files are first crawled from a source (website or database) by
+means of a crawler, or created using recording instruments. These files would
+then go through a pipeline of processing tasks to extract useful information
+for indexing, storage and visualization. The data visualizations could be
+indexed and stored together with the processing outputs. 
+
+For multimedia data, a textual representation of the data is often desirable
+as a precursor to further processing in the domain of natural language
+processing (NLP). Two processes are capable of converting
+multimedia into text:
+
+\begin{itemize}
+    \item Transcription --- the process of converting speech to
+    text~\cite{transcribe-mw}
+    \item (Image) Captioning --- the process of converting image to
+    description of such image~\cite{caption}
+\end{itemize}
 
 Transcription is a well-defined pipeline:
 
 \begin{figure}[h]
 \begin{center}
-    \includegraphics[width=0.9\textwidth]{../images/pipeline.png}
-    \caption{Transcription processing pipeline}
+    \includegraphics[width=\textwidth]{pipeline_transcribe}
+    \caption{Transcription processing pipeline}\label{trans}
 \end{center}
 \end{figure}
 
@@ -29,8 +62,22 @@ segments (usually short) said by different speakers. These short segments are
 then fed one-by-one to a transcription system; combining all the results gives
 the final transcript.
 
-For each process in the pipeline, there exists multiple solutions to perform
-the task. Many of them are either public application programming interfaces (APIs)
+Captioning is similarly a well-defined pipeline:
+
+\begin{figure}[h]
+\begin{center}
+    \includegraphics[width=0.9\textwidth]{pipeline_capgen}
+    \caption{Image captioning processing pipeline}\label{cap}
+\end{center}
+\end{figure}
+
+Captioning starts with the raw video file, which could come in different formats.
+A converter would re-encode the video into a common format and pass the output
+to a caption generator. The caption generator then extracts the keyframes and
+apply its algorithms to produce a human-like description of each keyframe.
+
+For each process in the processing pipeline, there exists multiple solutions
+to perform the task. Many of them are either public APIs
 or open-source; however, they exist as ``black boxes'' --- each solution accepts
 input and produces output in a specific manner. This presents a challenge in
 integrating multiple solutions to realise the transcription pipeline.
@@ -38,16 +85,17 @@ Additionally, given an integrated pipeline, upgrading or changing any component
 could potentially break the pipeline. After the pipeline is upgraded, there must
 also be a mechanism to update the transcriptions and keep track of versions. 
 
-This project proposes an integrated transcription system; apart from realising
-the transcription pipeline, this system would be able to accommodate versioning
-of all the pipeline components as well as all the transcripts. Ultimately, this
+This project proposes an integrated processing system; apart from realising
+the processing pipelines for transcription and captioning, this system would be
+able to accommodate versioning
+of all the pipeline components as well as all the outputs. Ultimately, this
 results in a simple and more efficient processing workflow for multimedia.
 
 This project would be done in conjunction with other efforts of the Speech and
-Language Research Group in School of Computer Science and Engineering~\cite{slrg}
-(thereafter referred to as SLRG).
+Language Research Group at the School of Computer Science and Engineering
+(SLRG)\cite{slrg}.
 
-\section{Objective}
+\section{Objective}\label{sec:in:obj}
 
 The primary objective of this project is to design a system architecture and
 develop the respective system capable of performing the following tasks:
@@ -56,6 +104,8 @@ develop the respective system capable of performing the following tasks:
     \item Transcription of individual audio and video files using different
     transcription solutions
     \item Transcription of multi-channel audio recording
+    \item Keyframe captioning of video files
+    \item Visualization of the generated transcripts and captions
 \end{itemize}
 
 The developed system must also have the following qualitative requirements:
@@ -71,18 +121,30 @@ The developed system must also have the following qualitative requirements:
     insights to the outputs
 \end{itemize}
 
-\section{Scope}
+\section{Scope}\label{sec:in:sco}
 
-The scope of this project is restricted to developing a system to be used in a
-desktop/ laptop Ubuntu Linux environment, to perform the tasks mentioned above. A
-functioning graphics user interface (GUI) is also not required.
+The scope of this project is restricted to developing a system to perform the
+tasks mentioned above. The project would assume that the audio/ video files
+already exist in the appropriate paths in the system, and only perform the
+processing and produce the visualizations.
 
-However, the system could be modified and extended to perform other related tasks
-in different environments, with a GUI\@.
+Effectively, the processing pipeline of the project is as follows:
+
+\begin{figure}[h]
+\begin{center}
+    \includegraphics[width=\textwidth]{pipeline_effective}
+    \caption{Scope of the project}\label{scope}
+\end{center}
+\end{figure}
+    
+Platform-wise, the project is developed in Python in a Ubuntu Linux environment,
+utilising a command-line interface (CLI). A functioning graphical user interface
+(GUI) is not required; however, the system could
+be modified and extended to perform in different environments, with a GUI\@.
 
 \section{Project Timeline}
 
-The project was scheduled to commence from January 2017 to October 2017. The major
+The project was scheduled to commence from January 2017 to December 2017. The major
 milestones are as follows:
 
 \begin{itemize}
@@ -91,18 +153,20 @@ milestones are as follows:
     to Current System
     \item \textbf{End of September 2017:} Completion of Development of New Modules;
     Commencement of Integration Testing
-    \item \textbf{End of October 2017:} Completion of Project
+    \item \textbf{End of October 2017:} Completion of Primary Objectives
+    \item \textbf{End of December 2017:} Project Presentation and Handover
 \end{itemize}
 
 \section{Report Organisation}
 
-This report is divided into four chapters:
+This report is divided into five chapters:
 
 \begin{itemize}
     \item Chapter 1 provides an introduction to the project, states its objective
     and scope and provides a timeline for completion.
-    \item Chapter 2 gives a summary of the work done so far on the project
-    \item Chapter 3 gives an overview to the remaining work to be done before the
-    project completes.
-    \item Chapter 4 concludes the report.
+    \item Chapter 2 provides a review of the existing solutions for each component
+    to be developed in the project.
+    \item Chapter 3 details the implementation of the project
+    \item Chapter 4 gives an evaluation of the project on an existing dataset.
+    \item Chapter 5 concludes the report.
 \end{itemize}
