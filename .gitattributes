@@ -1,0 +1,2 @@
+# exclude reports from language stats on github
+report/* linguist-documentation
