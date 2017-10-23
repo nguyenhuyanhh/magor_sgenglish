@@ -167,7 +167,8 @@ hard-coded into the system, allowing easy maintenance and upgrade.
 
 Each module has its own manifest, at the path \texttt{module\_id/manifest.json}
 as specified in Figure~\ref{module}. The manifest file must conform to the
-JSON structure specified in Figure~\ref{manifest-md}.
+JSON structure specified in Figure~\ref{manifest-md}; the fields are described
+in Table~\ref{table:manifest-md}.
 
 \begin{figure}[ht]
 \begin{lstlisting}
@@ -182,13 +183,30 @@ JSON structure specified in Figure~\ref{manifest-md}.
 \caption{Modular manifest structure}\label{manifest-md}
 \end{figure}
 
-\texttt{requires}, \texttt{inputs} and \texttt{outputs} are all JSON lists.
-\texttt{requires} is a list of (optional) data files and executables required
-for the module's functionality; these files should be in place after running
-the \texttt{setup} script. \texttt{inputs} and \texttt{outputs} are lists of
-subfolders under \texttt{working\_dir}\footnote{See Section~\ref{sec:im:arch:data}
-on Data.} where the module would pull its input files and push its output
-files, respectively.
+\begin{longtabu}{X[1.5,l]X[3.5,l]X[1,l]}
+    \textbf{Field} & \textbf{Description} & \textbf{Type} \\
+    \midrule
+    \endhead{}
+    \texttt{name} &
+    Module name &
+    \texttt{str} \\
+    \texttt{version} &
+    Module version &
+    \texttt{str}  \\
+    \texttt{requires} &
+    List of (optional) data files and executables required
+    for the module's functionality &
+    \texttt{list\,(str)} \\
+    \texttt{inputs} &
+    Lists of subfolders under \texttt{working\_dir}
+    where the module would pull its input files from &
+    \texttt{list\,(str)} \\
+    \texttt{outputs} &
+    Lists of subfolders under \texttt{working\_dir}
+    where the module would push its output files to &
+    \texttt{list\,(str)} \\
+    \caption{Modular manifest fields}\label{table:manifest-md}
+\end{longtabu}
 
 In this way, the manifest file serves as a blueprint of the module to the
 system; this blueprint would be realised by the module executable.
@@ -445,6 +463,15 @@ optional arguments:
 \end{lstlisting}
 \caption{System CLI}\label{args}
 \end{figure}
+
+The command \texttt{setup} calls the modules' setup scripts to setup the
+whole system; the command options allow users to setup as many modules
+as they wish at one go. The command \texttt{process} calls the processing
+pipeline; at each process call the system could process multiple files
+using multiple procedures belonging to a specific process, allowing users
+to fully customize the process calls. The two special flags \texttt{-t} and
+\texttt{-n} allow the users to perform checks only without any processing;
+this adds to the flexibility of the system. 
 
 \subsection{Modules for Transcription}\label{sec:im:code:trans}
 
