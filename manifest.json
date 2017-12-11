@@ -9,6 +9,9 @@
             "capgen": "1.0",
             "visualize": "1.0",
             "vad": "1.0"
+        },
+        "process-2": {
+            "resample": "0.9"
         }
     },
     "default_process": "process-1",

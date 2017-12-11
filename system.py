@@ -43,24 +43,22 @@ class Manifest(object):
         with open(sys_mnft, 'r') as mnft:
             manifest = json.load(mnft)
         self.processes = manifest['processes']
+        self.def_process = manifest['default_process']
         self.procedures = manifest['procedures']
         self.valid_types = [x.decode('utf-8') for x in manifest['file_types']
                             ['audio'] + manifest['file_types']['video']]
         # modular manifests
-        manifest['modules'] = dict()
+        manifest['modules'] = {}
         for mod_id in os.listdir(MODULES_DIR):
             mod_mnft = os.path.join(MODULES_DIR, mod_id, 'manifest.json')
             if os.path.exists(mod_mnft):  # check for modular manifest
                 with open(mod_mnft, 'r') as mnft:
                     manifest['modules'][mod_id] = json.load(mnft)
         self.modules = manifest['modules']
-        # cache it somewhere
-        with open(os.path.join(CUR_DIR, 'manifest_cache.json'), 'w') as mnft:
-            json.dump(manifest, mnft, sort_keys=True, indent=4)
 
     def check_modules(self):
         """Check modular manifests for consistency, disable violating modules."""
-        mod_violate = list()
+        mod_violate = []
         # find violating modules
         for mod_id, mod_ in self.modules.items():
             mod_path = os.path.join(MODULES_DIR, mod_id)
@@ -75,47 +73,61 @@ class Manifest(object):
         # disable violating modules
         for mod_id in mod_violate:
             del self.modules[mod_id]
-        LOG.info('Valid modules: %s', ', '.join(self.modules.keys()))
+        LOG.info('Valid modules: %s', ', '.join(sorted(self.modules.keys())))
 
-    def check_processes(self):
-        """Check processes for consistency, disable violating process components."""
-        modules_set = set(self.modules)
-        for process_id in self.processes:
-            # find violating procedures
-            LOG.info('Checking process %s', process_id)
-            proc_violate = list()
-            proc_ = self.processes[process_id]
-            for procedure_id in proc_:
-                # process' procedure not in manifest
-                if procedure_id not in self.procedures.keys():
-                    LOG.info('Procedure %s does not exist', procedure_id)
-                    proc_violate.append(procedure_id)
-                    break
-                # process' procedure's modules are different from procedure definition
-                elif set(proc_[procedure_id].keys()) != set(self.procedures[procedure_id]):
-                    LOG.info(
-                        'Not all modules in procedure %s are defined', procedure_id)
-                    proc_violate.append(procedure_id)
-                    break
-                else:
-                    modules = ['{}-{}'.format(mod, ver)
-                               for mod, ver in proc_[procedure_id].items()]
-                    # some procedure's modules not in manifest
-                    if not set(modules).issubset(modules_set):
-                        LOG.info('Modules %s does not exist', ', '.join(
-                            set(modules).difference(modules_set)))
-                        proc_violate.append(procedure_id)
-            # disable violating procedures
-            for procedure_id in proc_violate:
-                del self.processes[process_id][procedure_id]
-            LOG.info('Valid procedures: %s', ', '.join(
-                self.processes[process_id].keys()))
+    def check_def_process(self):
+        """Check the default process for consistency, disable violating modules."""
+        mod_violate = []
+        # find violating modules
+        for mod_name, mod_ver in self.processes[self.def_process].items():
+            mod_id = '{}-{}'.format(mod_name, mod_ver)
+            if mod_id not in self.modules:
+                mod_violate.append(mod_name)
+        # disable violating modules
+        for mod_name in mod_violate:
+            del self.processes[self.def_process][mod_name]
+        valid_mods = sorted(['{}-{}'.format(x, self.processes[self.def_process][x])
+                             for x in self.processes[self.def_process]])
+        LOG.info('Default process (%s): %s',
+                 self.def_process, ', '.join(valid_mods))
+
+    def set_and_check_processes(self):
+        """Enumerate the process module versions for all processes."""
+        for process_id, proc_ in self.processes.items():
+            if process_id != self.def_process:  # no need to check default process again
+                # check non-default versions
+                mod_violate = []
+                for mod_name, mod_ver in self.processes[process_id].items():
+                    if '{}-{}'.format(mod_name, mod_ver) not in self.modules:
+                        mod_violate.append(mod_name)
+                for mod_name in mod_violate:
+                    del self.processes[process_id][mod_name]
+                # fill default versions, overwrite invalid versions from above
+                for mod_name, mod_ver in self.processes[self.def_process].items():
+                    if mod_name not in proc_:
+                        proc_[mod_name] = mod_ver
+                process_mods = sorted(['{}-{}'.format(x, self.processes[process_id][x])
+                                       for x in self.processes[process_id]])
+                LOG.info('Process %s: %s', process_id, ', '.join(process_mods))
+
+    def to_json(self, json_path=os.path.join(CUR_DIR, 'manifest_cache.json')):
+        """Cache the manifest."""
+        manifest = {}
+        manifest['processes'] = self.processes
+        manifest['default_process'] = self.def_process
+        manifest['procedures'] = self.procedures
+        manifest['valid_types'] = self.valid_types
+        manifest['modules'] = self.modules
+        with open(json_path, 'w') as mnft:
+            json.dump(manifest, mnft, sort_keys=True, indent=4)
 
     def check_all(self):
         """Wrapper for all manifest checks."""
         LOG.info('Startup manifest checks...')
         self.check_modules()
-        self.check_processes()
+        self.check_def_process()
+        self.set_and_check_processes()
+        self.to_json()
 
 
 class Operation(object):
@@ -282,8 +294,8 @@ def workflow(manifest, process_id, procedures, file_names, file_ids,
             CRAWL_DIR), file_ids=os.listdir(process_dir), simulate=simulate)
 
     # populate valid_names and valid_ids, check for duplicates
-    valid_names = list()
-    valid_ids = list()
+    valid_names = []
+    valid_ids = []
     if file_names:
         valid_names = [i for i in file_names if os.path.isfile(
             os.path.join(CRAWL_DIR, i))]
