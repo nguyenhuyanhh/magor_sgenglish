@@ -1,34 +1,20 @@
 {
     "processes": {
         "process-1": {
-            "google": {
-                "resample": "1.0",
-                "diarize": "8.4.1",
-                "google": "1"
-            },
-            "lvcsr": {
-                "resample": "1.0",
-                "diarize": "8.4.1",
-                "lvcsr": "1701"
-            },
-            "capgen": {
-                "convert": "1.0",
-                "capgen": "1.0"
-            },
-            "visualize": {
-                "resample": "1.0",
-                "diarize": "8.4.1",
-                "google": "1",
-                "visualize": "1.0"
-            },
-            "vad": {
-                "resample": "1.0",
-                "vad": "1.0",
-                "google": "1",
-                "visualize": "1.0"
-            }
+            "resample": "1.0",
+            "diarize": "8.4.1",
+            "google": "1",
+            "lvcsr": "1701",
+            "convert": "1.0",
+            "capgen": "1.0",
+            "visualize": "1.0",
+            "vad": "1.0"
+        },
+        "process-2": {
+            "resample": "0.9"
         }
     },
+    "default_process": "process-1",
     "procedures": {
         "google": [
             "resample",
@@ -57,6 +43,9 @@
             "visualize"
         ]
     },
+    "default_procedures": [
+        "visualize"
+    ],
     "file_types": {
         "audio": [
             ".wav",

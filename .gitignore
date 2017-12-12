@@ -12,3 +12,6 @@ crawl*/
 
 # Manifest cache
 manifest_cache.json
+
+# Testing module
+modules/resample-0.9/*

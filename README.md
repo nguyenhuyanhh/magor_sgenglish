@@ -79,15 +79,21 @@ An example would be the included `manifest.json`.
 ```json
 {
     "processes": {
-        "process-id-1": {
-            "procedure-id-1": {
-                "resample": "1.0",
-                "diarize": "8.4.1",
-                "google": "1"
-            },
-            "procedure-id-2":{}
+        "process-1": {
+            "resample": "1.0",
+            "diarize": "8.4.1",
+            "google": "1",
+            "lvcsr": "1701",
+            "convert": "1.0",
+            "capgen": "1.0",
+            "visualize": "1.0",
+            "vad": "1.0"
+        },
+        "process-2": {
+            "resample": "0.9"
         }
     },
+    "default_process": "process-1",
     "procedures":{
         "procedure-id-1":[
             "resample",
@@ -116,7 +122,7 @@ The manifest is initiated as an instance of the class `Manifest`, and manifest i
 
 Each module in the system performs a function, which takes input files from certain subfolders under the working folder (`data/process-id/file-id`) and produce output files in other subfolders under the same working folder. Modules could be pipelined into procedures, if their input and output requirements are linked.
 
-Processes are a certain configuration of procedures, each procedure having modules locked to a certain version. The same procedure when applied to different processes might have different versions; this enables versioning of module outputs.
+Processes are a certain configuration of procedures, each procedure having modules locked to a certain version (overwriting the default version, specified by the default process). The same procedure when applied to different processes might have different versions; this enables versioning of module outputs.
 
 #### Module file structure
 
