@@ -184,15 +184,21 @@ class Operation(object):
         if self.process_id not in self.manifest.processes.keys():
             LOG.info('Process %s does not exist', self.process_id)
             return False
-        elif self.procedure_id not in self.manifest.processes[self.process_id].keys():
+        if self.procedure_id not in self.manifest.procedures.keys():
             LOG.info('Procedure %s does not exist', self.procedure_id)
             return False
 
-        # if all is well, set module list
-        self.module_list = [
-            '{}-{}'.format(mod,
-                           self.manifest.processes[self.process_id][self.procedure_id][mod])
-            for mod in self.manifest.procedures[self.procedure_id]]
+        # check and set module list
+        module_list = []
+        for mod_name in self.manifest.procedures[self.procedure_id]:
+            if mod_name in self.manifest.processes[self.process_id].keys():
+                module_list.append(
+                    '{}-{}'.format(mod_name, self.manifest.processes[self.process_id][mod_name]))
+            else:
+                LOG.info('Module %s is not in process %s',
+                         mod_name, self.process_id)
+                return False
+        self.module_list = module_list
         return True
 
     def import_file(self):
