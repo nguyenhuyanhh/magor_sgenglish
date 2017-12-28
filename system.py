@@ -91,7 +91,7 @@ class Manifest(object):
         LOG.info('Default process (%s): %s',
                  self.def_process, ', '.join(valid_mods))
 
-    def set_and_check_processes(self):
+    def check_processes(self):
         """Enumerate the process module versions for all processes."""
         for process_id, proc_ in self.processes.items():
             if process_id != self.def_process:  # no need to check default process again
@@ -126,7 +126,7 @@ class Manifest(object):
         LOG.info('Startup manifest checks...')
         self.check_modules()
         self.check_def_process()
-        self.set_and_check_processes()
+        self.check_processes()
         self.to_json()
 
 
