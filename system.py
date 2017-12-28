@@ -31,8 +31,8 @@ LOG = logging.getLogger('system')
 
 
 class Manifest(object):
-    """
-    Class holding the system and modular manifests for a system instance.
+    """Class holding the system and modular manifests for a system instance.
+
     Syntax: Manifest(sys_mnft=os.path.join(CUR_DIR, 'manifest.json'))
     """
 
@@ -131,24 +131,38 @@ class Manifest(object):
 
 
 class Operation(object):
-    """
-    Processing tasks.
+    """Class holding a processing task, on a single file_id.
+
     Syntax: Operation(manifest, process_id, procedure_id,
-                      file_name=None, file_id=None, simulate=False)
+                      file_names=None, file_id=None, simulate=False)
     """
 
     def __init__(self, manifest, process_id, procedure_id,
-                 file_name=None, file_id=None, simulate=False):
-        if not (file_name or file_id):
-            self.valid = False  # invalid operation
-        elif file_name:
-            self.file_name = file_name
-            self.file_id = slugify(os.path.splitext(file_name)[0])
+                 file_names=None, file_id=None, simulate=False):
+        # check for valid operation (either file_name or file_id must be present)
+        if not (file_names or file_id):
+            self.valid = False
+        else:
             self.valid = True
-        elif file_id:
-            self.file_name = None
+
+        # get all possible combinations of file_names and file_id
+        if file_id:
             self.file_id = file_id
-            self.valid = True
+            if isinstance(file_names, str):
+                self.file_names = [file_names]
+            elif isinstance(file_names, list):
+                self.file_names = sorted(file_names)
+            elif not file_names:
+                self.file_names = None
+        else:
+            if isinstance(file_names, str):
+                self.file_names = [file_names]
+                self.file_id = slugify(os.path.splitext(file_names)[0])
+            elif isinstance(file_names, list):
+                self.file_names = sorted(file_names)
+                self.file_id = slugify(
+                    os.path.splitext(self.file_names[0])[0] + '-multifile')
+
         self.manifest = manifest
         self.process_id = process_id
         self.procedure_id = procedure_id
@@ -160,8 +174,8 @@ class Operation(object):
         self.module_list = None
 
     def __repr__(self):
-        result = 'Operation(process_id={}, procedure_id={}, file_name={}, file_id={})'.format(
-            self.process_id, self.procedure_id, self.file_name, self.file_id)
+        result = 'Operation(process_id={}, procedure_id={}, file_names={}, file_id={})'.format(
+            self.process_id, self.procedure_id, self.file_names, self.file_id)
         return result
 
     def verify(self):
@@ -171,27 +185,28 @@ class Operation(object):
             return False
 
         # check for valid file_name and file_id
-        if self.file_name:
-            if (os.path.splitext(self.file_name)[1].lower()) not in self.manifest.valid_types:
-                LOG.info('%s is of invalid type', self.file_name)
-                return False
+        if self.file_names:
+            for file_ in self.file_names:
+                if (os.path.splitext(file_)[1].lower()) not in self.manifest.valid_types:
+                    LOG.info('%s is of invalid type', file_)
+                    return False
         elif self.file_id:
             if not os.path.exists(self.working_dir):
                 LOG.info('%s does not exist', self.file_id)
                 return False
 
         # check for valid process & procedure
-        if self.process_id not in self.manifest.processes.keys():
+        if self.process_id not in self.manifest.processes:
             LOG.info('Process %s does not exist', self.process_id)
             return False
-        if self.procedure_id not in self.manifest.procedures.keys():
+        if self.procedure_id not in self.manifest.procedures:
             LOG.info('Procedure %s does not exist', self.procedure_id)
             return False
 
         # check and set module list
         module_list = []
         for mod_name in self.manifest.procedures[self.procedure_id]:
-            if mod_name in self.manifest.processes[self.process_id].keys():
+            if mod_name in self.manifest.processes[self.process_id]:
                 module_list.append(
                     '{}-{}'.format(mod_name, self.manifest.processes[self.process_id][mod_name]))
             else:
@@ -201,21 +216,22 @@ class Operation(object):
         self.module_list = module_list
         return True
 
-    def import_file(self):
-        """Import the file into /data."""
+    def import_files(self):
+        """Import the files into /data."""
         # init paths
         raw_dir = os.path.join(self.working_dir, 'raw/')
         if not os.path.exists(raw_dir):
             os.makedirs(raw_dir)
 
-        if self.file_name:
-            file_path = os.path.join(CRAWL_DIR, self.file_name)
-            raw_file = os.path.join(raw_dir, self.file_name)
-            if os.path.exists(raw_file):
-                LOG.info('Previously imported to %s', raw_file)
-            else:
-                shutil.copy2(file_path, raw_dir)
-                LOG.info('Imported %s to %s', file_path, raw_dir)
+        if self.file_names:
+            for file_ in self.file_names:
+                file_path = os.path.join(CRAWL_DIR, file_)
+                raw_file = os.path.join(raw_dir, file_)
+                if os.path.exists(raw_file):
+                    LOG.info('Previously imported to %s', raw_file)
+                else:
+                    shutil.copy2(file_path, raw_dir)
+                    LOG.info('Imported %s to %s', file_path, raw_dir)
         else:
             if os.path.exists(raw_dir) and os.listdir(raw_dir):
                 LOG.info('Previously imported to %s', raw_dir)
@@ -239,11 +255,11 @@ class Operation(object):
         print('\n')
         LOG.info('Process: %s', self.process_id)
         LOG.info('Procedure: %s', self.procedure_id)
-        if self.file_name:
-            LOG.info('Filename: %s', self.file_name)
+        if self.file_names:
+            LOG.info('Files: %s', self.file_names)
         LOG.info('File ID: %s', self.file_id)
         if self.verify():
-            self.import_file()
+            self.import_files()
             for mod_id in self.module_list:
                 if not self.call(mod_id):
                     # module failure, terminate operation
@@ -316,7 +332,7 @@ def workflow(manifest, process_id, procedures, file_names, file_ids,
     if valid_names:
         for i in itertools.product(valid_names, valid_procs):
             Operation(manifest, process_id,
-                      i[1], file_name=i[0], simulate=simulate).pipeline()
+                      i[1], file_names=i[0], simulate=simulate).pipeline()
     if valid_ids:
         for i in itertools.product(valid_ids, valid_procs):
             Operation(manifest, process_id,
