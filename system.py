@@ -4,7 +4,6 @@ from __future__ import print_function
 
 import argparse
 import json
-import itertools
 import logging
 import os
 import shutil
@@ -359,7 +358,7 @@ def main():
     process_parser.add_argument('-p', '--procedures', metavar='procedure_id',
                                 help='procedures to run', nargs='*')
     process_parser.add_argument(
-        '-f', '--files', metavar='file_names', help='file_names to process', nargs='*')
+        '-f', '--files', metavar='file_name', help='file_names to process', nargs='*')
     process_parser.add_argument(
         '-i', '--id', metavar='file_id', help='file_id to process', nargs='?')
 
