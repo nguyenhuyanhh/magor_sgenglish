@@ -4,7 +4,6 @@ from __future__ import print_function
 
 import argparse
 import json
-import itertools
 import logging
 import os
 import shutil
@@ -24,6 +23,7 @@ if not os.path.exists(DATA_DIR):
 CRAWL_DIR = os.path.join(CUR_DIR, 'crawl/')
 if not os.path.exists(CRAWL_DIR):
     os.makedirs(CRAWL_DIR)
+OPERATIONS_FILE = os.path.join(CUR_DIR, 'operations.json')
 
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s (%(name)s | %(levelname)s) : %(message)s')
@@ -31,8 +31,8 @@ LOG = logging.getLogger('system')
 
 
 class Manifest(object):
-    """
-    Class holding the system and modular manifests for a system instance.
+    """Class holding the system and modular manifests for a system instance.
+
     Syntax: Manifest(sys_mnft=os.path.join(CUR_DIR, 'manifest.json'))
     """
 
@@ -91,7 +91,7 @@ class Manifest(object):
         LOG.info('Default process (%s): %s',
                  self.def_process, ', '.join(valid_mods))
 
-    def set_and_check_processes(self):
+    def check_processes(self):
         """Enumerate the process module versions for all processes."""
         for process_id, proc_ in self.processes.items():
             if process_id != self.def_process:  # no need to check default process again
@@ -126,43 +126,60 @@ class Manifest(object):
         LOG.info('Startup manifest checks...')
         self.check_modules()
         self.check_def_process()
-        self.set_and_check_processes()
+        self.check_processes()
         self.to_json()
 
 
 class Operation(object):
-    """
-    Processing tasks.
+    """Class holding a processing task, on a single file_id.
+
     Syntax: Operation(manifest, process_id, procedure_id,
-                      file_name=None, file_id=None, simulate=False)
+                      file_names=None, file_id=None, simulate=False)
     """
 
     def __init__(self, manifest, process_id, procedure_id,
-                 file_name=None, file_id=None, simulate=False):
-        if not (file_name or file_id):
-            self.valid = False  # invalid operation
-        elif file_name:
-            self.file_name = file_name
-            self.file_id = slugify(os.path.splitext(file_name)[0])
-            self.valid = True
-        elif file_id:
-            self.file_name = None
-            self.file_id = file_id
-            self.valid = True
+                 file_names=None, file_id=None, simulate=False):
+        # textual representation
+        self._str = 'Operation(process_id={}, procedure_id={}, file_names={}, file_id={})'.format(
+            process_id, procedure_id, file_names, file_id)
+
         self.manifest = manifest
         self.process_id = process_id
         self.procedure_id = procedure_id
         self.simulate = simulate
-        self.working_dir = os.path.join(
-            DATA_DIR, self.process_id, self.file_id)
 
-        # set later during verify()
-        self.module_list = None
+        # check for valid operation (either file_name or file_id must be present)
+        if not (file_names or file_id):
+            self.valid = False
+        else:
+            self.valid = True
+
+            # get all possible combinations of file_names and file_id
+            if file_id:
+                self.file_id = file_id
+                if isinstance(file_names, str):
+                    self.file_names = [file_names]
+                elif isinstance(file_names, list):
+                    self.file_names = sorted(file_names)
+                elif not file_names:
+                    self.file_names = None
+            else:
+                if isinstance(file_names, str):
+                    self.file_names = [file_names]
+                    self.file_id = slugify(os.path.splitext(file_names)[0])
+                elif isinstance(file_names, list):
+                    self.file_names = sorted(file_names)
+                    self.file_id = slugify(
+                        os.path.splitext(self.file_names[0])[0] + '-multifile')
+
+            self.working_dir = os.path.join(
+                DATA_DIR, self.process_id, self.file_id)
+
+            # set later during verify()
+            self.module_list = None
 
     def __repr__(self):
-        result = 'Operation(process_id={}, procedure_id={}, file_name={}, file_id={})'.format(
-            self.process_id, self.procedure_id, self.file_name, self.file_id)
-        return result
+        return self._str
 
     def verify(self):
         """Verify the operation."""
@@ -170,28 +187,29 @@ class Operation(object):
         if not self.valid:
             return False
 
-        # check for valid file_name and file_id
-        if self.file_name:
-            if (os.path.splitext(self.file_name)[1].lower()) not in self.manifest.valid_types:
-                LOG.info('%s is of invalid type', self.file_name)
-                return False
+        # check for valid file_names and file_id
+        if self.file_names:
+            for file_ in self.file_names:
+                if (os.path.splitext(file_)[1].lower()) not in self.manifest.valid_types:
+                    LOG.info('%s is of invalid type', file_)
+                    return False
         elif self.file_id:
             if not os.path.exists(self.working_dir):
                 LOG.info('%s does not exist', self.file_id)
                 return False
 
         # check for valid process & procedure
-        if self.process_id not in self.manifest.processes.keys():
+        if self.process_id not in self.manifest.processes:
             LOG.info('Process %s does not exist', self.process_id)
             return False
-        if self.procedure_id not in self.manifest.procedures.keys():
+        if self.procedure_id not in self.manifest.procedures:
             LOG.info('Procedure %s does not exist', self.procedure_id)
             return False
 
         # check and set module list
         module_list = []
         for mod_name in self.manifest.procedures[self.procedure_id]:
-            if mod_name in self.manifest.processes[self.process_id].keys():
+            if mod_name in self.manifest.processes[self.process_id]:
                 module_list.append(
                     '{}-{}'.format(mod_name, self.manifest.processes[self.process_id][mod_name]))
             else:
@@ -201,21 +219,22 @@ class Operation(object):
         self.module_list = module_list
         return True
 
-    def import_file(self):
-        """Import the file into /data."""
+    def import_files(self):
+        """Import the files into /data."""
         # init paths
         raw_dir = os.path.join(self.working_dir, 'raw/')
         if not os.path.exists(raw_dir):
             os.makedirs(raw_dir)
 
-        if self.file_name:
-            file_path = os.path.join(CRAWL_DIR, self.file_name)
-            raw_file = os.path.join(raw_dir, self.file_name)
-            if os.path.exists(raw_file):
-                LOG.info('Previously imported to %s', raw_file)
-            else:
-                shutil.copy2(file_path, raw_dir)
-                LOG.info('Imported %s to %s', file_path, raw_dir)
+        if self.file_names:
+            for file_ in self.file_names:
+                file_path = os.path.join(CRAWL_DIR, file_)
+                raw_file = os.path.join(raw_dir, file_)
+                if os.path.exists(raw_file):
+                    LOG.info('Previously imported to %s', raw_file)
+                else:
+                    shutil.copy2(file_path, raw_dir)
+                    LOG.info('Imported %s to %s', file_path, raw_dir)
         else:
             if os.path.exists(raw_dir) and os.listdir(raw_dir):
                 LOG.info('Previously imported to %s', raw_dir)
@@ -237,24 +256,24 @@ class Operation(object):
             LOG.info('%s', self.__repr__())
             return
         print('\n')
-        LOG.info('Process: %s', self.process_id)
-        LOG.info('Procedure: %s', self.procedure_id)
-        if self.file_name:
-            LOG.info('Filename: %s', self.file_name)
-        LOG.info('File ID: %s', self.file_id)
+
         if self.verify():
-            self.import_file()
+            LOG.info('Process: %s', self.process_id)
+            LOG.info('Procedure: %s', self.procedure_id)
+            if self.file_names:
+                LOG.info('Files: %s', self.file_names)
+            LOG.info('File ID: %s', self.file_id)
+            self.import_files()
             for mod_id in self.module_list:
                 if not self.call(mod_id):
                     # module failure, terminate operation
-                    LOG.info('Pipeline failed for %s at procedure %s, module %s',
-                             self.file_id, self.procedure_id, mod_id)
+                    LOG.info('Pipeline failed for %s at process %s, procedure %s, module %s',
+                             self.file_id, self.process_id, self.procedure_id, mod_id)
                     return
-            LOG.info('Pipeline completed for %s using procedure %s',
-                     self.file_id, self.procedure_id)
+            LOG.info('Pipeline completed for %s using process %s, procedure %s',
+                     self.file_id, self.process_id, self.procedure_id)
         else:
-            LOG.info('Verification failed for %s using procedure %s',
-                     self.file_id, self.procedure_id)
+            LOG.info('Verification failed for %s', self._str)
 
 
 def setup(args):
@@ -278,57 +297,41 @@ def setup(args):
                 LOG.info('Setup failed for module %s', mod_id)
 
 
-def workflow(manifest, process_id, procedures, file_names, file_ids,
-             test=False, simulate=False):
-    """Processing workflow."""
+def workflow_single(manifest, process_id, procedures, file_names,
+                    file_id, test=False, simulate=False):
+    """Processing workflow for a single file_id."""
     if test:  # manifest check only, no processing
         return
 
-    # init path
-    if process_id not in manifest.processes.keys():
-        LOG.info('Process %s does not exist', process_id)
+    for procedure_id in procedures:
+        Operation(manifest, process_id, procedure_id,
+                  file_names, file_id, simulate).pipeline()
+
+
+def workflow_batch(manifest):
+    """Batch processing workflow using operations.json."""
+    # read OPERATIONS_FILE
+    try:
+        with open(OPERATIONS_FILE, 'r') as json_:
+            operations = json.load(json_)
+    except OSError:
+        LOG.info('Operations file at %s does not exist', OPERATIONS_FILE)
         return
-    else:
-        process_dir = os.path.join(DATA_DIR, process_id)
-        if not os.path.exists(process_dir):
-            os.makedirs(process_dir)
 
-    valid_procs = [
-        i for i in procedures if i in manifest.processes[process_id].keys()]
-    if not (file_names or file_ids):  # do everything
-        workflow(manifest, process_id, valid_procs, file_names=os.listdir(
-            CRAWL_DIR), file_ids=os.listdir(process_dir), simulate=simulate)
-
-    # populate valid_names and valid_ids, check for duplicates
-    valid_names = []
-    valid_ids = []
-    if file_names:
-        valid_names = [i for i in file_names if os.path.isfile(
-            os.path.join(CRAWL_DIR, i))]
-    if file_ids:
-        tmp_valid_ids = [i for i in file_ids if os.path.isdir(
-            os.path.join(process_dir, i))]
-        # check duplicates (file_ids where raw file is already inside valid_names)
-        valid_ids = [i for i in tmp_valid_ids if os.listdir(
-            os.path.join(process_dir, i, 'raw/'))[0] not in valid_names]
-
-    # process
-    if valid_names:
-        for i in itertools.product(valid_names, valid_procs):
-            Operation(manifest, process_id,
-                      i[1], file_name=i[0], simulate=simulate).pipeline()
-    if valid_ids:
-        for i in itertools.product(valid_ids, valid_procs):
-            Operation(manifest, process_id,
-                      i[1], file_id=i[0], simulate=simulate).pipeline()
+    # generate operations
+    for operation in operations:
+        Operation(manifest, **operation).pipeline()
 
 
 def process(args):
-    """Wrapper for workflow."""
+    """Wrapper for processing workflows."""
     manifest = Manifest()
     manifest.check_all()
-    workflow(manifest, args.process_id, args.procedures,
-             args.files, args.ids, args.test, args.simulate)
+    if args.batch:
+        workflow_batch(manifest)
+    else:
+        workflow_single(manifest, args.process_id, args.procedures,
+                        args.files, args.id, args.test, args.simulate)
 
 
 def main():
@@ -348,13 +351,16 @@ def main():
     # process sub-command
     process_parser = sub_parsers.add_parser('process', help='process files')
     process_parser.add_argument(
+        '-b', '--batch', action='store_true', help='batch mode')
+
+    process_parser.add_argument(
         'process_id', help='process_id for this run', nargs='?')
     process_parser.add_argument('-p', '--procedures', metavar='procedure_id',
                                 help='procedures to run', nargs='*')
     process_parser.add_argument(
         '-f', '--files', metavar='file_name', help='file_names to process', nargs='*')
     process_parser.add_argument(
-        '-i', '--ids', metavar='file_id', help='file_ids to process', nargs='*')
+        '-i', '--id', metavar='file_id', help='file_id to process', nargs='?')
 
     process_parser.add_argument(
         '-t', '--test', action='store_true', help='just do system checks and exit')

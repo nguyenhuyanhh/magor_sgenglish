@@ -15,3 +15,6 @@ manifest_cache.json
 
 # Testing module
 modules/resample-0.9/*
+
+# Operations
+operations.json

@@ -39,9 +39,9 @@ optional arguments:
 
 ```
 $ python system.py process -h
-usage: system.py process [-h] [-p [procedure_id [procedure_id ...]]]
-                         [-f [file_name [file_name ...]]]
-                         [-i [file_id [file_id ...]]] [-t] [-n]
+usage: system.py process [-h] [-b] [-p [procedure_id [procedure_id ...]]]
+                         [-f [file_name [file_name ...]]] [-i [file_id]] [-t]
+                         [-n]
                          [process_id]
 
 positional arguments:
@@ -49,12 +49,13 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
+  -b, --batch           batch mode
   -p [procedure_id [procedure_id ...]], --procedures [procedure_id [procedure_id ...]]
                         procedures to run
   -f [file_name [file_name ...]], --files [file_name [file_name ...]]
                         file_names to process
-  -i [file_id [file_id ...]], --ids [file_id [file_id ...]]
-                        file_ids to process
+  -i [file_id], --id [file_id]
+                        file_id to process
   -t, --test            just do system checks and exit
   -n, --simulate        simulate the run, without processing any file
 ```
@@ -224,3 +225,23 @@ data/
         ...
     ...
 ```
+
+### Batch mode
+
+Specifying `process` options is a tedious task, hence there is a batch processing mode using `operations.json` as an alternative. This mode is invoke by `$ python system.py process -b`, and it ignores any other `process` options.
+
+The format of `operations.json` are as follows:
+
+```json
+[
+    {
+        "process_id": "process-1",
+        "procedure_id": "google",
+        "file_names": [],
+        "file_id": "file-id",
+        "simulate": false
+    }
+]
+```
+
+It is essentially a list of `dict`s to build `Operation` objects.
