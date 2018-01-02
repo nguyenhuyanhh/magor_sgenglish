@@ -45,6 +45,7 @@ class Manifest(object):
         self.processes = manifest['processes']
         self.def_process = manifest['default_process']
         self.procedures = manifest['procedures']
+        self.def_procedures = manifest['default_procedures']
         self.valid_types = [x.decode('utf-8') for x in manifest['file_types']
                             ['audio'] + manifest['file_types']['video']]
         # modular manifests
@@ -116,6 +117,7 @@ class Manifest(object):
         manifest['processes'] = self.processes
         manifest['default_process'] = self.def_process
         manifest['procedures'] = self.procedures
+        manifest['default_procedures'] = self.def_procedures
         manifest['valid_types'] = self.valid_types
         manifest['modules'] = self.modules
         with open(json_path, 'w') as mnft:
@@ -318,8 +320,24 @@ def workflow_batch(manifest):
         LOG.info('Operations file at %s does not exist', OPERATIONS_FILE)
         return
 
-    # generate operations
+    # parse operations
+    parsed_ops = []
     for operation in operations:
+        # get default process_id and procedures if not specified
+        if 'process_id' not in operation:
+            operation['process_id'] = manifest.def_process
+        if 'procedures' not in operation:
+            operation['procedures'] = manifest.def_procedures
+
+        # parse multiple procedures
+        for procedure_id in operation['procedures']:
+            parsed_op = operation.copy()
+            del parsed_op['procedures']
+            parsed_op['procedure_id'] = procedure_id
+            parsed_ops.append(parsed_op)
+
+    # do operations
+    for operation in parsed_ops:
         Operation(manifest, **operation).pipeline()
 
 
