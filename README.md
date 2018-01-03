@@ -26,6 +26,8 @@ The system was developed using Python 2.7.12 on Lubuntu 16.04.2 LTS.
 
 ### Command-line interface
 
+#### System setup: `setup`
+
 ```
 $ python system.py setup -h
 usage: system.py setup [-h] [-m [module_id [module_id ...]]] [-a]
@@ -36,6 +38,8 @@ optional arguments:
                         module_ids to setup
   -a, --all             setup all available modules
 ```
+
+#### Interactive processing mode: `process`
 
 ```
 $ python system.py process -h
@@ -59,6 +63,26 @@ optional arguments:
   -t, --test            just do system checks and exit
   -n, --simulate        simulate the run, without processing any file
 ```
+
+#### Batch processing mode: `process -b`
+
+Specifying `process` options is a tedious task, hence there is a batch processing mode using `operations.json` as an alternative.
+
+The format of `operations.json` are as follows:
+
+```json
+[
+    {
+        "process_id": "process-1",
+        "procedures": [],
+        "file_names": [],
+        "file_id": "file-id",
+        "simulate": false
+    }
+]
+```
+
+It is essentially similar to the interactive mode. If `process_id` and/or `procedures` are not specified, the default in the manifest would be used.
 
 ### Overall repository structure
 
@@ -225,23 +249,3 @@ data/
         ...
     ...
 ```
-
-### Batch mode
-
-Specifying `process` options is a tedious task, hence there is a batch processing mode using `operations.json` as an alternative. This mode is invoke by `$ python system.py process -b`, and it ignores any other `process` options.
-
-The format of `operations.json` are as follows:
-
-```json
-[
-    {
-        "process_id": "process-1",
-        "procedure_id": "google",
-        "file_names": [],
-        "file_id": "file-id",
-        "simulate": false
-    }
-]
-```
-
-It is essentially a list of `dict`s to build `Operation` objects.
